@@ -14,15 +14,15 @@ def get_global_stack_bounds(stacks, **render):
     )
     # Set global bounds
     bounds = {}
-    bounds["minX"] = bounds_[:, 0].min()
-    bounds["minY"] = bounds_[:, 1].min()
-    bounds["minZ"] = bounds_[:, 2].min()
-    bounds["maxX"] = bounds_[:, 3].max()
-    bounds["maxY"] = bounds_[:, 4].max()
-    bounds["maxZ"] = bounds_[:, 5].max()
+    bounds["minX"] = int(bounds_[:, 0].min())
+    bounds["minY"] = int(bounds_[:, 1].min())
+    bounds["minZ"] = int(bounds_[:, 2].min())
+    bounds["maxX"] = int(bounds_[:, 3].max())
+    bounds["maxY"] = int(bounds_[:, 4].max())
+    bounds["maxZ"] = int(bounds_[:, 5].max())
 
     # Set z values based on global z range
-    z_values = np.arange(bounds["minZ"], bounds["maxZ"])
+    z_values = list(range(bounds["minZ"], bounds["maxZ"] + 1))
 
     return bounds, z_values
 
