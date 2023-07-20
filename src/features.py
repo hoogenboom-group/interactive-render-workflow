@@ -77,7 +77,7 @@ def match_features(
     features_q,
     params_match=None
     ):
-    """Find corresponding feature matches.
+    """Applies brute-force matching of feature descriptors.
 
     Parameters
     ----------
@@ -119,7 +119,7 @@ def find_feature_correspondences(
     params_features=None,
     params_match=None
 ):
-    """"""
+    """Find pairwise feature correspondences between two images."""
     if feature_detector == "SIFT":
         feature_finder = find_SIFT_features
     elif feature_detector == "ORB":
@@ -149,7 +149,31 @@ def find_robust_feature_correspondences(
     params_match=None,
     params_RANSAC=None,
 ):
-    """"""
+    """Find robust, pairwise feature correspondences between two images.
+
+    Features are detected and extracted from the provided feature detector
+    algorithm. Brute-force matching of feature descriptors is applied by
+    default. RANSAC is run on matched feature positions to enure robustness,
+    aka that coordinates of feature correspondences can be modeled by some
+    linear transformation.
+
+    Parameters
+    ----------
+    image_p : (M, N) ubyte array
+    image_q : (M, N) ubyte array
+    feature_detector: str
+    params_features : dict
+        parameter dict passed to chosen `feature_detector`
+    params_match : dict
+        parameter dict passed to `match_descriptors`
+    params_RANSAC : dict
+        parameter dict passed to `ransac`
+
+    Returns
+    -------
+    matches_p : (N, 2) int64 array
+    matches_q : (N, 2) int64 array
+    """
     # parameter handling
     params_RANSAC = {} if params_RANSAC is None else params_RANSAC
     params_RANSAC = {
