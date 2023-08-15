@@ -32,7 +32,7 @@ PARAMS_RANSAC = {
     "model_class": EuclideanTransform,
     "min_samples": 12,
     "residual_threshold": 2,
-    "max_trials": 500
+    "max_trials": 10000
 }
 
 
@@ -181,7 +181,7 @@ def find_robust_feature_correspondences(
         **params_RANSAC
     }
 
-    # find (only-sort-of-robust) features
+    # find (semi-robust) features
     matches_p, matches_q = find_feature_correspondences(
         image_p,
         image_q,
