@@ -6,7 +6,7 @@ from ipywidgets import interact, fixed, IntSlider
 
 import renderapi
 
-from stuff import (
+from utils import (
     get_global_stack_bounds,
     get_image_stacks,
     get_pointmatch_collection
