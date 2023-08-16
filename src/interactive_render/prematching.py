@@ -1,7 +1,10 @@
 import numpy as np
-from skimage.exposure import rescale_intensity
 import renderapi
 from renderapi.errors import RenderError
+
+from utils import (
+    rescale_image
+)
 
 
 OVERLAP = 0.05  # assumed overlap between fields
@@ -47,33 +50,6 @@ def get_bbox_from_relative_position(
 
     bbox = (x_min, y_min, x_max, y_max)
     return bbox
-
-
-def rescale_image_for_matching(image, k=2):
-    """Rescale intensity values prior to feature finding.
-
-    Clips intensity (based on mean +/- k*std) to facilitate feature finding, and
-    decreases bit depth from 16bit to 8bit to save on memory.
-
-    Parameters
-    ----------
-    image : (M, N) uint16 array
-    k : scalar (optional)
-        number of standard deviations away from mean from which to clip intensity
-        defaults to 2
-
-    Returns
-    -------
-    image : (M, N) ubyte array
-    """
-    mask = image[(image > 0) & (image < 65535)]
-    vmin = int(mask.mean() - k*mask.std())
-    vmax = int(mask.mean() + k*mask.std())
-    return rescale_intensity(
-        image,
-        in_range=(vmin, vmax),
-        out_range=np.ubyte
-    )
 
 
 def get_image_for_matching(
@@ -128,7 +104,7 @@ def get_image_for_matching(
     if isinstance(image, RenderError):
         return image
 
-    return rescale_image_for_matching(image)
+    return rescale_image(image, k=2)
 
 
 def get_image_pair_for_matching(

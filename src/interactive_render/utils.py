@@ -1,6 +1,34 @@
 from tqdm.notebook import tqdm
 import numpy as np
+from skimage.exposure import rescale_intensity
 import renderapi
+
+
+def rescale_image(image, k=3):
+    """Rescale intensity values.
+
+    Clips intensity (based on mean +/- k*std) to facilitate feature finding, and
+    decreases bit depth from 16bit to 8bit to save on memory.
+
+    Parameters
+    ----------
+    image : (M, N) uint16 array
+    k : scalar (optional)
+        number of standard deviations away from mean from which to clip intensity
+        defaults to 2
+
+    Returns
+    -------
+    image : (M, N) ubyte array
+    """
+    mask = image[(image > 0) & (image < 65535)]
+    vmin = int(mask.mean() - k*mask.std())
+    vmax = int(mask.mean() + k*mask.std())
+    return rescale_intensity(
+        image,
+        in_range=(vmin, vmax),
+        out_range=np.ubyte
+    )
 
 
 def get_global_stack_bounds(stacks, **render):
@@ -70,7 +98,7 @@ def get_mosaic(stack, z, width=256, **render):
     stack : str
     z : scalar
     width : scalar
-        Width of each tile in mosaic
+        width of each tile in mosaic
     render : dict
     """
     # alias for width

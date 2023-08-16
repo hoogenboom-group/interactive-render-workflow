@@ -9,7 +9,8 @@ import renderapi
 from utils import (
     get_global_stack_bounds,
     get_image_stacks,
-    get_intrasection_pointmatches
+    get_mosaic,
+    get_intrasection_pointmatches,
 )
 
 
@@ -131,39 +132,16 @@ def plot_stitching_matches_columnwise(
 
     # loop through sections
     for z in tqdm(z_values):
-
-        # infer shape of tile grid
+        
+        # get tile specifications for section
         tilespecs = renderapi.tilespec.get_tile_specs_from_z(
             stack=stack,
             z=z,
             **render
         )
-        grid_shape = (
-            1 + max([ts.layout.imageRow for ts in tilespecs]),
-            1 + max([ts.layout.imageCol for ts in tilespecs])
-        )
 
-        # initialize big mosaic of the full image grid
-        mosaic = np.zeros((w * grid_shape[0], w * grid_shape[1]))
-
-        # loop through grid
-        for ts in tilespecs:
-
-            # Get low-res image of each tile
-            image = renderapi.image.get_tile_image_data(
-                stack=stack,
-                tileId=ts.tileId,
-                scale=w/ts.width,
-                excludeAllTransforms=True,
-                img_format='tiff16',
-                **render
-            )
-            # fill in mosaic
-            i = ts.layout.imageRow
-            j = ts.layout.imageCol
-            y1, y2 = i*w, (i + 1)*w
-            x1, x2 = j*w, (j + 1)*w
-            mosaic[y1:y2, x1:x2] = image
+        # get mosaic
+        mosaic = get_mosaic(stack, z, width=w, **render)
 
         # plot mosaic
         vmin = np.mean([ts.minint for ts in tilespecs])
