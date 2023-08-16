@@ -1,0 +1,56 @@
+{
+   "first_section": 0,
+   "last_section": 0,
+   "solve_type": "montage",
+   "close_stack": "True",
+   "transformation": "rigid",
+   "start_from_file": "",
+   "output_mode": "stack",
+   "log_level": "INFO",
+   "input_stack": {
+       "owner": "",
+       "project": "",
+       "name": "",
+       "host": "localhost",
+       "port": 8081,
+       "client_scripts": "/home/catmaid/render/render-ws-java-client/src/main/scripts",
+       "collection_type": "stack",
+       "db_interface": "render"
+   },
+   "pointmatch": {
+       "owner": "",
+       "name": "",
+       "host": "localhost",
+       "port": 8081,
+       "client_scripts": "/home/catmaid/render/render-ws-java-client/src/main/scripts",
+       "collection_type": "pointmatch",
+       "db_interface": "render"
+   },
+   "output_stack": {
+       "owner": "",
+       "project": "",
+       "name": "",
+       "host": "localhost",
+       "port": 8081,
+       "client_scripts": "/home/catmaid/render/render-ws-java-client/src/main/scripts",
+       "collection_type": "stack",
+       "db_interface": "render"
+   }, 
+   "hdf5_options": {
+       "output_dir": "",
+       "chunks_per_file": -1
+   },
+   "matrix_assembly": {
+       "depth": 2,
+       "montage_pt_weight": 1.0,
+       "cross_pt_weight": 1.0,
+       "npts_min": 5,
+       "npts_max": 500,
+       "inverse_dz":"True"
+   },
+   "regularization": {
+       "default_lambda": 0.005,
+       "translation_factor": 0.005,
+       "thinplate_factor": 1e-5
+   }
+}
