@@ -4,7 +4,7 @@ from skimage.exposure import rescale_intensity
 import renderapi
 
 
-def rescale_image(image, k=3):
+def rescale_image(image, k=3, out_range=np.uint16):
     """Rescale intensity values.
 
     Clips intensity (based on mean +/- k*std) to facilitate feature finding, and
@@ -27,7 +27,7 @@ def rescale_image(image, k=3):
     return rescale_intensity(
         image,
         in_range=(vmin, vmax),
-        out_range=np.ubyte
+        out_range=out_range
     )
 
 
