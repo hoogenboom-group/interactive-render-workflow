@@ -22,7 +22,7 @@ def f_plot_stacks(
 ):
     """Support interactive plotting of multiple stacks"""
 
-    # Create figure
+    # create figure
     ncols = len(stacks)
     fig, axes = plt.subplots(
         ncols=ncols,

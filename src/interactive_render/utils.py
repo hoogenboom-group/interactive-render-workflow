@@ -6,13 +6,13 @@ import renderapi
 def get_global_stack_bounds(stacks, **render):
     """Get global stack boundaries across multiple stacks"""
 
-    # Get all stack boundaries
+    # get all stack boundaries
     bounds_ = np.array(
         [list(renderapi.stack.get_stack_bounds(
             stack=stack,
             **render).values()) for stack in stacks]
     )
-    # Set global bounds
+    # set global bounds
     bounds = {}
     bounds["minX"] = int(bounds_[:, 0].min())
     bounds["minY"] = int(bounds_[:, 1].min())
@@ -21,7 +21,7 @@ def get_global_stack_bounds(stacks, **render):
     bounds["maxY"] = int(bounds_[:, 4].max())
     bounds["maxZ"] = int(bounds_[:, 5].max())
 
-    # Set z values based on global z range
+    # set z values based on global z range
     z_values = list(range(bounds["minZ"], bounds["maxZ"] + 1))
 
     return bounds, z_values
@@ -29,18 +29,18 @@ def get_global_stack_bounds(stacks, **render):
 
 def get_image_stacks(stacks, width=1000, **render):
     """Get image stacks"""
-    # Get global bounds and z values
+    # get global bounds and z values
     bounds, z_values = get_global_stack_bounds(stacks, **render)
 
-    # Initialize collection of images
+    # initialize collection of images
     images = {stack: {} for stack in stacks}
-    # Loop through each stack
+    # loop through each stack
     for stack in tqdm(stacks):
 
-        # Render full section image at each z value
+        # render full section image at each z value
         for z in z_values:
 
-            # Render bbox image
+            # render bbox image
             image = renderapi.image.get_bb_image(
                 stack=stack,
                 z=z,
@@ -52,10 +52,64 @@ def get_image_stacks(stacks, width=1000, **render):
                 img_format='tiff16',
                 **render
             )
-            # Add to collection
+            # add to collection
             images[stack][z] = image
 
     return images
+
+
+def get_mosaic(stack, z, width=256, **render):
+    """Get mosaic
+
+    Most useful for plotting stitch lines. Differs from `get_image_stacks` in 
+    that `get_mosaic` renders each tile in a grid with 0 spacing while 
+    `get_image_stacks` renders bbox images of the entire section.
+
+    Parameters
+    ----------
+    stack : str
+    z : scalar
+    width : scalar
+        Width of each tile in mosaic
+    render : dict
+    """
+    # alias for width
+    w = width
+
+    # infer shape of tile grid
+    tilespecs = renderapi.tilespec.get_tile_specs_from_z(
+        stack=stack,
+        z=z,
+        **render
+    )
+    grid_shape = (
+        1 + max([ts.layout.imageRow for ts in tilespecs]),
+        1 + max([ts.layout.imageCol for ts in tilespecs])
+    )
+
+    # initialize big mosaic of the full image grid
+    mosaic = np.zeros((w * grid_shape[0], w * grid_shape[1]))
+
+    # loop through grid
+    for ts in tilespecs:
+
+        # Get low-res image of each tile
+        image = renderapi.image.get_tile_image_data(
+            stack=stack,
+            tileId=ts.tileId,
+            scale=w/ts.width,
+            excludeAllTransforms=True,
+            img_format='tiff16',
+            **render
+        )
+        # fill in mosaic
+        i = ts.layout.imageRow
+        j = ts.layout.imageCol
+        y1, y2 = i*w, (i + 1)*w
+        x1, x2 = j*w, (j + 1)*w
+        mosaic[y1:y2, x1:x2] = image
+
+    return mosaic
 
 
 def get_intrasection_pointmatches(
@@ -68,16 +122,13 @@ def get_intrasection_pointmatches(
     Parameters
     ----------
     stack : str
-        Input stack
     match_collection : str
-        Pointmatch collection
-    **render
-        Keyword arguments for render-ws environment
+    render : dict
 
     Returns
     -------
     d_matches : dict
-        Mapping of 
+        Mapping of ...
     """
     # Collection
     d_matches = {}
