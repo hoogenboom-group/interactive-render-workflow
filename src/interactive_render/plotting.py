@@ -9,7 +9,7 @@ import renderapi
 from utils import (
     get_global_stack_bounds,
     get_image_stacks,
-    get_pointmatch_collection
+    get_intrasection_pointmatches
 )
 
 
@@ -17,7 +17,6 @@ def f_plot_stacks(
     stacks,
     z,
     images,
-    render,
     vmin=0,
     vmax=65535,
 ):
@@ -76,21 +75,20 @@ def plot_stacks(
         stacks=fixed(stacks),
         z=IntSlider(min=min(z_values), max=max(z_values)),
         images=fixed(images),
-        render=fixed(render),
         width=fixed(width),
         vmin=IntSlider(vmin, 0, 65535),
         vmax=IntSlider(vmax, 0, 65535)
     )
 
 
-def plot_matches(
+def plot_stitching_matches_columnwise(
     stack,
     match_collection,
     z_values=None,
     width=256,
     **render
 ):
-    """Make neat plot of pointmatches to show how successful stitching was
+    """Make column-wise plot of pointmatches to show how successful stitching was
 
     Parameters
     ----------
@@ -102,20 +100,27 @@ def plot_matches(
         List of z values
     width : scalar (optional)
         Width (in pixels) of each tiny image in the mosaic
-    **render
+    render
         Keyword arguments for render-ws environment
     """
-    # Alias for width
+    # alias for width
     w = width
 
-    # Handle z values
+    # handle z values
     if z_values is None:
         z_values = renderapi.stack.get_z_values_for_stack(
             stack=stack,
             **render
         )
 
-    # Create figure
+    # get intra-section point matches
+    d_matches = get_intrasection_pointmatches(
+        stack=stack,
+        match_collection=match_collection,
+        **render
+    )
+
+    # create figure
     ncols = len(z_values)
     fig, axes = plt.subplots(
         ncols=ncols,
@@ -124,10 +129,10 @@ def plot_matches(
     )
     axmap = {k: v for k, v in zip(z_values, axes.flat)}
 
-    # Loop through sections
+    # loop through sections
     for z in tqdm(z_values):
 
-        # Infer shape of tile grid
+        # infer shape of tile grid
         tilespecs = renderapi.tilespec.get_tile_specs_from_z(
             stack=stack,
             z=z,
@@ -166,11 +171,6 @@ def plot_matches(
         axmap[z].imshow(mosaic, cmap="Greys_r", vmin=vmin, vmax=vmax)
 
         # Plot pointmatches as a collection of line segments
-        d_matches = get_pointmatch_collection(
-            stack=stack,
-            match_collection=match_collection,
-            **render
-        )
         for d in d_matches[z]:
 
             # Get tile specifications for tile pair
