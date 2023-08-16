@@ -58,12 +58,12 @@ def get_image_stacks(stacks, width=1000, **render):
     return images
 
 
-def get_pointmatch_collection(
+def get_intrasection_pointmatches(
     stack,
     match_collection,
     **render
 ):
-    """Get more useful collection of pointmatches
+    """Get all intra-section point matches for a given stack
 
     Parameters
     ----------
