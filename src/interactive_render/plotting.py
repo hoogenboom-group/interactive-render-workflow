@@ -13,6 +13,8 @@ from utils import (
     get_intrasection_pointmatches,
 )
 
+WIDTH_FIELD = 6400
+
 
 def f_plot_stacks(
     stacks,
@@ -94,15 +96,15 @@ def plot_stitching_matches_columnwise(
     Parameters
     ----------
     stack : str
-        Input stack
+        input stack
     match_collection : str
-        Collection of pointmatches
+        collection of pointmatches
     z_values : list-like (optional)
-        List of z values
+        list of z values
     width : scalar (optional)
-        Width (in pixels) of each tiny image in the mosaic
+        width (in pixels) of each tiny image in the mosaic
     render
-        Keyword arguments for render-ws environment
+        keyword arguments for render-ws environment
     """
     # alias for width
     w = width
@@ -159,14 +161,14 @@ def plot_stitching_matches_columnwise(
                 # get pointmatches for tile p, scale and shift them over
                 i_p = ts_p.layout.imageRow
                 j_p = ts_p.layout.imageCol
-                X_p = np.array(d["matches"]["p"][0]) * (w/ts.width) + j_p*w
-                Y_p = np.array(d["matches"]["p"][1]) * (w/ts.width) + i_p*w
+                X_p = np.array(d["matches"]["p"][0]) * (w/WIDTH_FIELD) + j_p*w
+                Y_p = np.array(d["matches"]["p"][1]) * (w/WIDTH_FIELD) + i_p*w
 
                 # get pointmatches for tile q, scale and shift them over
                 i_q = ts_q.layout.imageRow
                 j_q = ts_q.layout.imageCol
-                X_q = np.array(d["matches"]["q"][0]) * (w/ts.width) + j_q*w
-                Y_q = np.array(d["matches"]["q"][1]) * (w/ts.width) + i_q*w
+                X_q = np.array(d["matches"]["q"][0]) * (w/WIDTH_FIELD) + j_q*w
+                Y_q = np.array(d["matches"]["q"][1]) * (w/WIDTH_FIELD) + i_q*w
 
                 # convert pointmatch coordinates into line segments
                 vertices = [[(x_p, y_p), (x_q, y_q)] for (x_p, y_p, x_q, y_q) in zip(X_p, Y_p, X_q, Y_q)]

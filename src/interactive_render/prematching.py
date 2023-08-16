@@ -104,7 +104,7 @@ def get_image_for_matching(
     if isinstance(image, RenderError):
         return image
 
-    return rescale_image(image, k=2)
+    return rescale_image(image, k=2, out_range=np.ubyte)
 
 
 def get_image_pair_for_matching(
