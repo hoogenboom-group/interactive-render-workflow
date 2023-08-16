@@ -31,20 +31,20 @@ def f_plot_stacks(
         figsize=(5*ncols, 5),
         squeeze=False,
     )
-    # Map each stack to an axis
+    # map each stack to an axis
     axmap = {k: v for k, v in zip(stacks, axes.flat)}
 
-    # Loop through stacks
+    # loop through stacks
     for stack in stacks:
 
-        # Plot image
+        # plot image
         axmap[stack].imshow(
             images[stack][z],
             cmap="Greys_r",
             vmin=vmin,
             vmax=vmax
         )
-        # Aesthetics
+        # aesthetics
         axmap[stack].set_title(stack)
 
 
@@ -57,19 +57,19 @@ def plot_stacks(
 ):
     """Plot stacks interactively"""
 
-    # Get z values (bounds not needed)
+    # get z values (bounds not needed)
     _, z_values = get_global_stack_bounds(stacks, **render)
 
-    # Get image stacks
+    # get image stacks
     images = get_image_stacks(stacks, width, **render)
 
-    # Standard-deviation-based clipping (ignore 0 intensity pixels)
+    # standard-deviation-based clipping (ignore 0 intensity pixels)
     k = 3
     imstack = np.stack([list(d.values()) for d in images.values()])
     vmin = imstack[imstack > 0].mean() - k*imstack[imstack > 0].std()
     vmax = imstack[imstack > 0].mean() + k*imstack[imstack > 0].std()
 
-    # Interaction magic
+    # interaction magic
     interact(
         f_plot_stacks,
         stacks=fixed(stacks),
@@ -143,10 +143,10 @@ def plot_stitching_matches_columnwise(
             1 + max([ts.layout.imageCol for ts in tilespecs])
         )
 
-        # Initialize big mosaic of the full image grid
+        # initialize big mosaic of the full image grid
         mosaic = np.zeros((w * grid_shape[0], w * grid_shape[1]))
 
-        # Loop through grid
+        # loop through grid
         for ts in tilespecs:
 
             # Get low-res image of each tile
@@ -158,43 +158,43 @@ def plot_stitching_matches_columnwise(
                 img_format='tiff16',
                 **render
             )
-            # Fill in mosaic
+            # fill in mosaic
             i = ts.layout.imageRow
             j = ts.layout.imageCol
             y1, y2 = i*w, (i + 1)*w
             x1, x2 = j*w, (j + 1)*w
             mosaic[y1:y2, x1:x2] = image
 
-        # Plot mosaic
+        # plot mosaic
         vmin = np.mean([ts.minint for ts in tilespecs])
         vmax = np.mean([ts.maxint for ts in tilespecs])
         axmap[z].imshow(mosaic, cmap="Greys_r", vmin=vmin, vmax=vmax)
 
-        # Plot pointmatches as a collection of line segments
+        # plot pointmatches as a collection of line segments
         for d in d_matches[z]:
 
-            # Get tile specifications for tile pair
+            # get tile specifications for tile pair
             ts_p = renderapi.tilespec.get_tile_spec(stack=stack, tile=d["pId"], **render)
             ts_q = renderapi.tilespec.get_tile_spec(stack=stack, tile=d["qId"], **render)
 
             if (ts_p is not None) and (ts_q is not None):
-                # Get pointmatches for tile p, scale and shift them over
+                # get pointmatches for tile p, scale and shift them over
                 i_p = ts_p.layout.imageRow
                 j_p = ts_p.layout.imageCol
                 X_p = np.array(d["matches"]["p"][0]) * (w/ts.width) + j_p*w
                 Y_p = np.array(d["matches"]["p"][1]) * (w/ts.width) + i_p*w
 
-                # Get pointmatches for tile q, scale and shift them over
+                # get pointmatches for tile q, scale and shift them over
                 i_q = ts_q.layout.imageRow
                 j_q = ts_q.layout.imageCol
                 X_q = np.array(d["matches"]["q"][0]) * (w/ts.width) + j_q*w
                 Y_q = np.array(d["matches"]["q"][1]) * (w/ts.width) + i_q*w
 
-                # Convert pointmatch coordinates into line segments
+                # convert pointmatch coordinates into line segments
                 vertices = [[(x_p, y_p), (x_q, y_q)] for (x_p, y_p, x_q, y_q) in zip(X_p, Y_p, X_q, Y_q)]
                 lines = LineCollection(vertices, color="#ffaa00")
                 axmap[z].add_collection(lines)
 
-        # Aesthetics
+        # aesthetics
         title = f"Z = {z}"
         axmap[z].set_title(title)
