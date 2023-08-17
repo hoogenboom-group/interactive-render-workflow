@@ -52,54 +52,6 @@ def f_plot_stacks(
         axmap[stack].set_title(stack)
 
 
-def f_plot_stack_with_matches(
-    stack,
-    z,
-    mosaics,
-    d_matches,
-    width,
-    render,
-):
-    """
-    """
-    # alias for width
-    w = width
-
-    # create figure
-    fig, ax = plt.subplots(figsize=(5, 5))
-
-    # plot mosaic
-    ax.imshow(
-        mosaics[z],
-        cmap="Greys_r",
-    )
-
-    # loop through tile-2-tile point matches for given section
-    for d in d_matches[z]:
-
-        # get tile specifications for tile pair
-        ts_p = renderapi.tilespec.get_tile_spec(stack=stack, tile=d["pId"], **render)
-        ts_q = renderapi.tilespec.get_tile_spec(stack=stack, tile=d["qId"], **render)
-
-        if (ts_p is not None) and (ts_q is not None):
-            # get pointmatches for tile p, scale and shift them over
-            i_p = ts_p.layout.imageRow
-            j_p = ts_p.layout.imageCol
-            X_p = np.array(d["matches"]["p"][0]) * (w/WIDTH_FIELD) + j_p*w
-            Y_p = np.array(d["matches"]["p"][1]) * (w/WIDTH_FIELD) + i_p*w
-
-            # get pointmatches for tile q, scale and shift them over
-            i_q = ts_q.layout.imageRow
-            j_q = ts_q.layout.imageCol
-            X_q = np.array(d["matches"]["q"][0]) * (w/WIDTH_FIELD) + j_q*w
-            Y_q = np.array(d["matches"]["q"][1]) * (w/WIDTH_FIELD) + i_q*w
-
-            # convert pointmatch coordinates into line segments
-            vertices = [[(x_p, y_p), (x_q, y_q)] for (x_p, y_p, x_q, y_q) in zip(X_p, Y_p, X_q, Y_q)]
-            lines = LineCollection(vertices, color="#ffaa00")
-            ax.add_collection(lines)
-
-
 def plot_stacks(
     stacks,
     render,
@@ -133,13 +85,68 @@ def plot_stacks(
     )
 
 
+def f_plot_stack_with_matches(
+    stack,
+    z,
+    mosaics,
+    d_matches,
+    width,
+    render,
+):
+    """Support interactive plotting of a stack with overlaid stitch lines"""
+    # alias for width
+    w = width
+
+    # create figure
+    fig, ax = plt.subplots(figsize=(5, 5))
+
+    # plot mosaic
+    ax.imshow(
+        mosaics[z],
+        cmap="Greys_r",
+    )
+
+    # loop through tile-2-tile point matches for given section
+    for d in d_matches[z]:
+
+        # get tile specifications for tile pair
+        ts_p = renderapi.tilespec.get_tile_spec(stack=stack, tile=d["pId"], **render)
+        ts_q = renderapi.tilespec.get_tile_spec(stack=stack, tile=d["qId"], **render)
+
+        if (ts_p is not None) and (ts_q is not None):
+
+            # get pointmatches for tile p, scale and shift them over
+            i_p = ts_p.layout.imageRow
+            j_p = ts_p.layout.imageCol
+            X_p = np.array(d["matches"]["p"][0]) * (w/WIDTH_FIELD) + j_p*w
+            Y_p = np.array(d["matches"]["p"][1]) * (w/WIDTH_FIELD) + i_p*w
+
+            # get pointmatches for tile q, scale and shift them over
+            i_q = ts_q.layout.imageRow
+            j_q = ts_q.layout.imageCol
+            X_q = np.array(d["matches"]["q"][0]) * (w/WIDTH_FIELD) + j_q*w
+            Y_q = np.array(d["matches"]["q"][1]) * (w/WIDTH_FIELD) + i_q*w
+
+            # convert pointmatch coordinates into line segments
+            vertices = [[(x_p, y_p), (x_q, y_q)] for (x_p, y_p, x_q, y_q) in zip(X_p, Y_p, X_q, Y_q)]
+            lines = LineCollection(vertices, color="#ffaa00")
+
+            # plot stitch lines and annotate
+            ax.add_collection(lines)
+            x = max(j_p, j_q) * w if (i_p == i_q) else (j_p + 0.5) * w
+            y = (i_p + 0.5) * w if (i_p == i_q) else max(i_p, i_q) * w
+            s = f"{len(vertices)}"
+            ax.text(x, y, s=s, ha="center", va="center",
+                    bbox={"facecolor": "none", "edgecolor": "black", "pad": 2})
+
+
 def plot_stack_with_stitching_matches(
     stack,
     match_collection,
     render,
     width=256,
 ):
-    """Stack plot interactively and overlay intra-section point matches"""
+    """Plot stack interactively and overlay stitch lines"""
     # get z values (bounds not needed)
     _, z_values = get_global_stack_bounds([stack], **render)
 
