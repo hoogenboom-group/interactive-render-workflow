@@ -5,7 +5,7 @@ from matplotlib.collections import LineCollection
 from ipywidgets import interact, fixed, IntSlider
 import renderapi
 
-from utils import (
+from .utils import (
     rescale_image,
     get_global_stack_bounds,
     get_image_stacks,
