@@ -3,15 +3,16 @@ import numpy as np
 import matplotlib.pyplot as plt
 from matplotlib.collections import LineCollection
 from ipywidgets import interact, fixed, IntSlider
-
 import renderapi
 
 from utils import (
+    rescale_image,
     get_global_stack_bounds,
     get_image_stacks,
     get_mosaic,
     get_intrasection_pointmatches,
 )
+
 
 WIDTH_FIELD = 6400
 
@@ -51,6 +52,54 @@ def f_plot_stacks(
         axmap[stack].set_title(stack)
 
 
+def f_plot_stack_with_matches(
+    stack,
+    z,
+    mosaics,
+    d_matches,
+    width,
+    render,
+):
+    """
+    """
+    # alias for width
+    w = width
+
+    # create figure
+    fig, ax = plt.subplots(figsize=(5, 5))
+
+    # plot mosaic
+    ax.imshow(
+        mosaics[z],
+        cmap="Greys_r",
+    )
+
+    # loop through tile-2-tile point matches for given section
+    for d in d_matches[z]:
+
+        # get tile specifications for tile pair
+        ts_p = renderapi.tilespec.get_tile_spec(stack=stack, tile=d["pId"], **render)
+        ts_q = renderapi.tilespec.get_tile_spec(stack=stack, tile=d["qId"], **render)
+
+        if (ts_p is not None) and (ts_q is not None):
+            # get pointmatches for tile p, scale and shift them over
+            i_p = ts_p.layout.imageRow
+            j_p = ts_p.layout.imageCol
+            X_p = np.array(d["matches"]["p"][0]) * (w/WIDTH_FIELD) + j_p*w
+            Y_p = np.array(d["matches"]["p"][1]) * (w/WIDTH_FIELD) + i_p*w
+
+            # get pointmatches for tile q, scale and shift them over
+            i_q = ts_q.layout.imageRow
+            j_q = ts_q.layout.imageCol
+            X_q = np.array(d["matches"]["q"][0]) * (w/WIDTH_FIELD) + j_q*w
+            Y_q = np.array(d["matches"]["q"][1]) * (w/WIDTH_FIELD) + i_q*w
+
+            # convert pointmatch coordinates into line segments
+            vertices = [[(x_p, y_p), (x_q, y_q)] for (x_p, y_p, x_q, y_q) in zip(X_p, Y_p, X_q, Y_q)]
+            lines = LineCollection(vertices, color="#ffaa00")
+            ax.add_collection(lines)
+
+
 def plot_stacks(
     stacks,
     render,
@@ -81,6 +130,41 @@ def plot_stacks(
         width=fixed(width),
         vmin=IntSlider(vmin, 0, 65535),
         vmax=IntSlider(vmax, 0, 65535)
+    )
+
+
+def plot_stack_with_stitching_matches(
+    stack,
+    match_collection,
+    render,
+    width=256,
+):
+    """Stack plot interactively and overlay intra-section point matches"""
+    # get z values (bounds not needed)
+    _, z_values = get_global_stack_bounds([stack], **render)
+
+    # get stack of mosaics
+    mosaics = rescale_image(
+        np.stack([get_mosaic(stack, z, width, **render) for z in z_values]),
+        k=3,
+    )
+
+    # get intra-section point matches
+    d_matches = get_intrasection_pointmatches(
+        stack,
+        match_collection,
+        **render
+    )
+
+    # interaction magic
+    interact(
+        f_plot_stack_with_matches,
+        stack=fixed(stack),
+        z=IntSlider(min=min(z_values), max=max(z_values)),
+        mosaics=fixed(mosaics),
+        d_matches=fixed(d_matches),
+        width=fixed(width),
+        render=fixed(render)
     )
 
 
@@ -135,20 +219,12 @@ def plot_stitching_matches_columnwise(
     # loop through sections
     for z in tqdm(z_values):
         
-        # get tile specifications for section
-        tilespecs = renderapi.tilespec.get_tile_specs_from_z(
-            stack=stack,
-            z=z,
-            **render
-        )
-
         # get mosaic
-        mosaic = get_mosaic(stack, z, width=w, **render)
-
+        mosaic = rescale_image(
+            get_mosaic(stack, z, width=w, **render)
+        )
         # plot mosaic
-        vmin = np.mean([ts.minint for ts in tilespecs])
-        vmax = np.mean([ts.maxint for ts in tilespecs])
-        axmap[z].imshow(mosaic, cmap="Greys_r", vmin=vmin, vmax=vmax)
+        axmap[z].imshow(mosaic, cmap="Greys_r")
 
         # plot pointmatches as a collection of line segments
         for d in d_matches[z]:
