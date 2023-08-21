@@ -14,6 +14,8 @@ BUFFER = 100    # amount of extra pixels to include in bbox
 def get_bbox_from_relative_position(
     tilespec,
     relative_position,
+    overlap=None,
+    buffer=None
 ):
     """Determine bounding box from relative position.
 
@@ -22,6 +24,10 @@ def get_bbox_from_relative_position(
     tilespec : `renderapi.tilespec.TileSpec`
     relative_position : str
         relative position as determined by `renderapi.client.tilePairClient`
+    overlap : scalar
+        assumed overlap between fields
+    buffer : scalar
+        amount of extra pixels to include in bbox
 
     Returns
     -------
@@ -30,22 +36,26 @@ def get_bbox_from_relative_position(
     """
     if relative_position is None:
         return tilespec.bbox
+    if overlap is None:
+        overlap = OVERLAP
+    if buffer is None:
+        buffer = BUFFER
 
     # unpack bounding box
     x_min, y_min, x_max, y_max = tilespec.bbox
 
     # change the appropriate coordinate
     if relative_position.lower() == "left":
-        x_min = x_max - OVERLAP*tilespec.width - BUFFER
+        x_min = x_max - overlap*tilespec.width - buffer
     elif relative_position.lower() == "right":
-        x_max = x_min + OVERLAP*tilespec.width + BUFFER
+        x_max = x_min + overlap*tilespec.width + buffer
     elif relative_position.lower() == "top":
-        y_min = y_max - OVERLAP*tilespec.height - BUFFER
+        y_min = y_max - overlap*tilespec.height - buffer
     elif relative_position.lower() == "bottom":
-        y_max = y_min + OVERLAP*tilespec.height + BUFFER
+        y_max = y_min + overlap*tilespec.height + buffer
 
     else:
-        msg = f"unknown relative position, '{relative_position}'."
+        msg = f"Unknown relative position, '{relative_position}'."
         raise ValueError(msg)
 
     bbox = (x_min, y_min, x_max, y_max)
@@ -79,7 +89,7 @@ def get_image_for_matching(
         **render_kwargs
     )
     if spec is None:
-        msg = f"tile spec, '{tileId}', does not exist in stack, '{stack}'."
+        msg = f"Tile specification, '{tileId}', does not exist in stack, '{stack}'."
         return RenderError(msg)
 
     # determine bbox from relative position and overlap
