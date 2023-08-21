@@ -13,7 +13,7 @@ BUFFER = 100    # amount of extra pixels to include in bbox
 
 def get_bbox_from_relative_position(
     tilespec,
-    relative_position,
+    relative_position=None,
     overlap=None,
     buffer=None
 ):
