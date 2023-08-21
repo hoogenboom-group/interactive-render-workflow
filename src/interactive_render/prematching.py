@@ -2,13 +2,13 @@ import numpy as np
 import renderapi
 from renderapi.errors import RenderError
 
-from utils import (
+from .utils import (
     rescale_image
 )
 
 
 OVERLAP = 0.05  # assumed overlap between fields
-BUFFER = 100    # amount of extra pixels to include in bbox
+BUFFER = 300    # amount of extra pixels to include in bbox
 
 
 def get_bbox_from_relative_position(
