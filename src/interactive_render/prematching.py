@@ -79,6 +79,10 @@ def get_image_for_matching(
     relative_position : str (optional)
         relative position as determined by `renderapi.client.tilePairClient`
         defaults to None --> full image
+    overlap : scalar
+        assumed overlap between fields
+    buffer : scalar
+        amount of extra pixels to include in bbox
 
     Returns
     -------
@@ -122,6 +126,8 @@ def get_image_for_matching(
 def get_image_pair_for_matching(
     stack,
     tilepair,
+    overlap=None,
+    buffer=None,
     **render_kwargs
 ):
     """Get pair of images from which to find features.
@@ -138,6 +144,10 @@ def get_image_pair_for_matching(
                "id": ...,
                "relativePosition": ...}
         }
+    overlap : scalar
+        assumed overlap between fields
+    buffer : scalar
+        amount of extra pixels to include in bbox
 
     Returns
     -------
@@ -148,12 +158,16 @@ def get_image_pair_for_matching(
         stack=stack,
         tileId=tilepair["p"].get("id"),
         relative_position=tilepair["p"].get("relativePosition"),
+        overlap=overlap,
+        buffer=buffer,
         **render_kwargs
     )
     image_q = get_image_for_matching(
         stack=stack,
         tileId=tilepair["q"].get("id"),
         relative_position=tilepair["q"].get("relativePosition"),
+        overlap=overlap,
+        buffer=buffer,
         **render_kwargs
     )
     return image_p, image_q
