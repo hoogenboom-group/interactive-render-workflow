@@ -66,6 +66,8 @@ def get_image_for_matching(
     stack,
     tileId,
     relative_position=None,
+    overlap=None,
+    buffer=None,
     **render_kwargs
 ):
     """Retrieve (part of) an image expected to overlap with its pair.
@@ -94,7 +96,7 @@ def get_image_for_matching(
 
     # determine bbox from relative position and overlap
     bbox = get_bbox_from_relative_position(
-        spec, relative_position
+        spec, relative_position, overlap, buffer
     )
 
     # get image as 16bit tiff
