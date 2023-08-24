@@ -124,8 +124,12 @@ def f_plot_stack_with_matches(
             # get pointmatches for tile q, scale and shift them over
             i_q = ts_q.layout.imageRow
             j_q = ts_q.layout.imageCol
-            X_q = np.array(d["matches"]["q"][0]) * (w/WIDTH_FIELD) + j_q*w
-            Y_q = np.array(d["matches"]["q"][1]) * (w/WIDTH_FIELD) + i_q*w
+            try:
+                X_q = np.array(d["matches"]["q"][0]) * (w/WIDTH_FIELD) + j_q*w
+                Y_q = np.array(d["matches"]["q"][1]) * (w/WIDTH_FIELD) + i_q*w
+            except IndexError:
+                X_q = np.array([])
+                Y_q = np.array([])
 
             # convert pointmatch coordinates into line segments
             vertices = [[(x_p, y_p), (x_q, y_q)] for (x_p, y_p, x_q, y_q) in zip(X_p, Y_p, X_q, Y_q)]
