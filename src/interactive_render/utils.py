@@ -1,7 +1,17 @@
+import requests
 from tqdm.notebook import tqdm
 import numpy as np
 from skimage.exposure import rescale_intensity
 import renderapi
+
+
+def clear_image_cache():
+    url = "https://sonic.tnw.tudelft.nl/render-ws/v1/imageProcessorCache/allEntries"
+    response  = requests.delete(url)
+    if response.status_code == 401:  # probably running locally
+        url = "http://localhost:8081/render-ws/v1/imageProcessorCache/allEntries"
+        response = requests.delete(url)
+    return response
 
 
 def rescale_image(image, k=3, out_range=np.uint16):
