@@ -114,19 +114,26 @@ def get_mosaic(stack, z, width=256, **render):
     # alias for width
     w = width
 
-    # infer shape of tile grid
-    tilespecs = renderapi.tilespec.get_tile_specs_from_z(
+    # Compute grid shape from stack bounds and max tile width and height
+    metadata = renderapi.stack.get_full_stack_metadata(
         stack=stack,
-        z=z,
         **render
     )
+    bounds = metadata['stats']['stackBounds']
     grid_shape = (
-        1 + max([ts.layout.imageRow for ts in tilespecs]),
-        1 + max([ts.layout.imageCol for ts in tilespecs])
+        int(bounds['maxY'] / metadata['maxTileHeight']),
+        int(bounds['maxX'] / metadata['maxTileWidth'])
     )
 
     # initialize big mosaic of the full image grid
     mosaic = np.zeros((w * grid_shape[0], w * grid_shape[1]))
+    
+    # get tilespecs
+    tilespecs = renderapi.tilespec.get_tile_specs_from_z(
+        stack=stack,
+        z=z,
+        **render
+        )
 
     # loop through grid
     for ts in tilespecs:
