@@ -121,8 +121,8 @@ def get_mosaic(stack, z, width=256, **render):
     )
     bounds = metadata['stats']['stackBounds']
     grid_shape = (
-        int(bounds['maxY'] / metadata['maxTileHeight']),
-        int(bounds['maxX'] / metadata['maxTileWidth'])
+        int(bounds['maxY'] / metadata['stats']['maxTileHeight']),
+        int(bounds['maxX'] / metadata['stats']['maxTileWidth'])
     )
 
     # initialize big mosaic of the full image grid
