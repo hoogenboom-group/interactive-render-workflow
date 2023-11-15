@@ -3,6 +3,9 @@ from tqdm.notebook import tqdm
 import numpy as np
 from skimage.exposure import rescale_intensity
 import renderapi
+import tifffile
+import pathlib
+from scripted_render_pipeline.importer.render_specs import Axis, Tile, Section, Stack
 
 
 def clear_image_cache():
@@ -95,7 +98,84 @@ def get_image_stacks(stacks, width=1000, **render):
 
     return images
 
+def create_downsampled_stack(project_dir, stack_2_downsample, width=2048, **render):
+    """Create downsampled image stack
 
+    returns ds_stack object
+    """
+    all_sections = {}
+    stack = stack_2_downsample['in']
+    ds_stack_name = stack_2_downsample["out"]
+    bounds = renderapi.stack.get_stack_bounds(stack, 
+                                              **render)
+    z_values = renderapi.stack.get_z_values_for_stack(stack, 
+                                                      **render)
+    ds_stack_dir = project_dir / "_dsmontages" / ds_stack_name
+    ds_stack_dir.mkdir(parents=True, exist_ok=True)
+    
+    # Loop through z levels
+    for z in tqdm(z_values, 
+                  total=len(z_values)):
+        sectionId = renderapi.stack.get_sectionId_for_z(stack, 
+                                                        z=z,
+                                                        **render)
+        # Get downsampled image of section
+        ds_image = renderapi.image.get_bb_image(stack=stack,
+                                               z=z,
+                                               x=bounds['minX'],
+                                               y=bounds['minY'],
+                                               width=(bounds['maxX'] - bounds['minX']),
+                                               height=(bounds['maxY'] - bounds['minY']),
+                                               scale=(width / (bounds['maxX'] - bounds['minX'])),
+                                               img_format='tiff16',
+                                               **render)
+        # Make subdirectory for ds_image
+        ds_section_dir = ds_stack_dir / sectionId
+        ds_section_dir.mkdir(parents=True, exist_ok=True)
+        tileId = f"dsm_{int(z)}_0000x0000.tiff"
+        # Write downsampled image to disk
+        tifffile.imwrite(
+            ds_section_dir / tileId,
+            ds_image,
+            photometric="minisblack"
+            # compression="zlib",
+            # compressionargs={"level": 8},
+        )
+        # TileSpecs for building render stack
+        layout = renderapi.tilespec.Layout(
+            sectionId=sectionId,
+            imageRow=0,
+            imageCol=0
+        )
+        height = ds_image.shape[0]
+        spec = renderapi.tilespec.TileSpec(
+            tileId=tileId,
+            z=z,
+            width=width,
+            height=height,
+            layout=layout,
+            tforms=[[renderapi.transform.AffineModel()]]
+        )
+        pixels = width, height
+        mins = [min(0, value) for value in pixels]
+        maxs = [max(0, value) for value in pixels]
+        coordinates = [xy * px for xy, px in zip([0, 0], pixels)]
+        axes = [Axis(*item) for item in zip(mins, maxs, coordinates)]
+        # Generate Tile and Section instances
+        ds_tile = Tile(stackname=ds_stack_name, zvalue=z, spec=spec, 
+                       acquisitiontime=None, axes=axes, 
+                       min_intensity=0, max_intensity=255)
+        section = Section(ds_tile.zvalue, ds_tile.stackname)
+        section.add_tile(ds_tile)
+        all_sections[ds_tile.zvalue] = section
+  
+    # Add sections (ds_tiles) to stack
+    ds_stack = Stack(ds_stack_name)
+    for section in all_sections.values():
+        ds_stack.add_section(section)
+
+    return ds_stack # Stack of downsampled images
+    
 def get_mosaic(stack, z, width=256, **render):
     """Get mosaic
 
