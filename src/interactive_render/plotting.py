@@ -54,10 +54,10 @@ def f_plot_stacks(
 
 def plot_stacks(
     stacks,
-    render,
     width=1000,
     vmin=0,
     vmax=65535,
+    **render
 ):
     """Plot stacks interactively"""
 
@@ -91,7 +91,7 @@ def f_plot_stack_with_matches(
     mosaics,
     d_matches,
     width,
-    render,
+    **render,
 ):
     """Support interactive plotting of a stack with overlaid stitch lines"""
     # alias for width
@@ -147,8 +147,8 @@ def f_plot_stack_with_matches(
 def plot_stack_with_stitching_matches(
     stack,
     match_collection,
-    render,
     width=256,
+    **render
 ):
     """Plot stack interactively and overlay stitch lines"""
     # get z values (bounds not needed)
