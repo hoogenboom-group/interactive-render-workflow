@@ -10,10 +10,10 @@ from .utils import (
     get_global_stack_bounds,
     get_image_stacks,
     get_mosaic,
-    get_intrasection_pointmatches,
+    get_pointmatches,
 )
 
-
+DS_WIDTH = 2048 # Fixed downsampled image width
 WIDTH_FIELD = 6400
 
 
@@ -91,7 +91,7 @@ def f_plot_stack_with_matches(
     mosaics,
     d_matches,
     width,
-    **render,
+    render,
 ):
     """Support interactive plotting of a stack with overlaid stitch lines"""
     # alias for width
@@ -142,13 +142,72 @@ def f_plot_stack_with_matches(
             s = f"{len(vertices)}"
             ax.text(x, y, s=s, ha="center", va="center",
                     bbox={"facecolor": "none", "edgecolor": "black", "pad": 2})
+            
+def f_plot_dsstack_with_matches(
+    stack,
+    z,
+    dsimages,
+    d_matches,
+    width,
+    render,
+):
+    """Support interactive plotting of a downsampled image stack with overlaid matches in z"""
+    # alias for width
+    w = width
+
+    # create figure
+    fig, ax = plt.subplots(1, 2, figsize=(10, 5))
+
+    # plot dsstack z-level
+    ax[0].imshow(
+        dsimages[z],
+        cmap="Greys_r",
+    )
+    # plot dsstack adjacent z-level
+    ax[1].imshow(
+        dsimages[z+1],
+        cmap="Greys_r",
+    )
+    # loop through point matches for given section-pair
+    for d in d_matches[z]:
+
+        # get tile specifications for tile pair
+        ts_p = renderapi.tilespec.get_tile_spec(stack=stack, tile=d["pId"], **render)
+        ts_q = renderapi.tilespec.get_tile_spec(stack=stack, tile=d["qId"], **render)
+
+        if (ts_p is not None) and (ts_q is not None):
+
+            # get pointmatches for tile p, scale and shift them over
+            i_p = ts_p.layout.imageRow
+            j_p = ts_p.layout.imageCol
+            X_p = np.array(d["matches"]["p"][0]) * (w / DS_WIDTH) + j_p*w
+            Y_p = np.array(d["matches"]["p"][1]) * (w / DS_WIDTH) + i_p*w
+
+            # get pointmatches for tile q, scale and shift them over
+            i_q = ts_q.layout.imageRow
+            j_q = ts_q.layout.imageCol
+            try:
+                X_q = np.array(d["matches"]["q"][0]) * (w / DS_WIDTH) + j_q*w
+                Y_q = np.array(d["matches"]["q"][1]) * (w / DS_WIDTH) + i_q*w
+            except IndexError:
+                X_q = np.array([])
+                Y_q = np.array([])
+
+            # Plot matches
+            ax[0].scatter(X_p, Y_p, color='orange', marker='x')
+            ax[1].scatter(X_q, Y_q, color='blue', marker='x')
+            s_p, s_q = len(X_p), len(X_q)
+            ax[0].text(width/2, width/2, s=s_p, ha="center", va="center",
+                    bbox={"facecolor": "none", "edgecolor": "black", "pad": 2})
+            ax[1].text(width/2, width/2, s=s_q, ha="center", va="center",
+                    bbox={"facecolor": "none", "edgecolor": "black", "pad": 2})
 
 
 def plot_stack_with_stitching_matches(
     stack,
     match_collection,
-    width=256,
-    **render
+    render,
+    width=256
 ):
     """Plot stack interactively and overlay stitch lines"""
     # get z values (bounds not needed)
@@ -161,7 +220,7 @@ def plot_stack_with_stitching_matches(
     )
 
     # get intra-section point matches
-    d_matches = get_intrasection_pointmatches(
+    d_matches = get_pointmatches(
         stack,
         match_collection,
         **render
@@ -173,6 +232,39 @@ def plot_stack_with_stitching_matches(
         stack=fixed(stack),
         z=IntSlider(min=min(z_values), max=max(z_values)),
         mosaics=fixed(mosaics),
+        d_matches=fixed(d_matches),
+        width=fixed(width),
+        render=fixed(render)
+    )
+
+def plot_dsstack_with_alignment_matches(
+    stack,
+    match_collection,
+    width,
+    **render
+):
+    """Plot stack interactively and show matches between z-levels"""
+    # get z values (bounds not needed)
+    _, z_values = get_global_stack_bounds([stack], **render)
+
+    # get dsimage stack
+    dsimages = get_image_stacks(stacks=[stack],
+                                width=width,
+                                **render)
+
+    # get inter-section point matches
+    d_matches = get_pointmatches(
+        stack,
+        match_collection,
+        **render
+    )
+
+    # interaction magic
+    interact(
+        f_plot_dsstack_with_matches,
+        stack=fixed(stack),
+        dsimages=fixed(dsimages[stack]),
+        z=IntSlider(min=min(z_values), max=max(z_values)-1),
         d_matches=fixed(d_matches),
         width=fixed(width),
         render=fixed(render)
@@ -212,7 +304,7 @@ def plot_stitching_matches_columnwise(
         )
 
     # get intra-section point matches
-    d_matches = get_intrasection_pointmatches(
+    d_matches = get_pointmatches(
         stack=stack,
         match_collection=match_collection,
         **render
