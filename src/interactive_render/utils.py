@@ -6,6 +6,7 @@ import renderapi
 import tifffile
 import pathlib
 from scripted_render_pipeline.importer.render_specs import Axis, Tile, Section, Stack
+from scripted_render_pipeline.importer import fastem_mipmapper
 
 
 def clear_image_cache():
@@ -129,18 +130,12 @@ def create_downsampled_stack(project_dir, stack_2_downsample, width=2048, **rend
                                                scale=(width / (bounds['maxX'] - bounds['minX'])),
                                                img_format='tiff16',
                                                **render)
-        # Make subdirectory for ds_image
+        # Make imagePyramid
         ds_section_dir = ds_stack_dir / sectionId
-        ds_section_dir.mkdir(parents=True, exist_ok=True)
-        tileId = f"dsm_{int(z)}_0000x0000.tiff"
-        # Write downsampled image to disk
-        tifffile.imwrite(
-            ds_section_dir / tileId,
-            ds_image,
-            photometric="minisblack"
-            # compression="zlib",
-            # compressionargs={"level": 8},
-        )
+        mipmapper = fastem_mipmapper.FASTEM_Mipmapper(project_path=project_dir)
+        pyramid = mipmapper.make_pyramid(ds_section_dir,
+                                         ds_image,
+                                         description=None)
         # TileSpecs for building render stack
         layout = renderapi.tilespec.Layout(
             sectionId=sectionId,
@@ -149,12 +144,11 @@ def create_downsampled_stack(project_dir, stack_2_downsample, width=2048, **rend
         )
         height = ds_image.shape[0]
         spec = renderapi.tilespec.TileSpec(
-            tileId=tileId,
-            z=z,
+            imagePyramid=pyramid,
             width=width,
             height=height,
             layout=layout,
-            tforms=[[renderapi.transform.AffineModel()]]
+            tforms=[]
         )
         pixels = width, height
         mins = [min(0, value) for value in pixels]
@@ -166,6 +160,7 @@ def create_downsampled_stack(project_dir, stack_2_downsample, width=2048, **rend
                        acquisitiontime=None, axes=axes, 
                        min_intensity=0, max_intensity=255)
         section = Section(ds_tile.zvalue, ds_tile.stackname)
+        # Add Tile to 'Section' (Tile = section image)
         section.add_tile(ds_tile)
         all_sections[ds_tile.zvalue] = section
   
