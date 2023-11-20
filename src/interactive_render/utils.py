@@ -8,6 +8,8 @@ import pathlib
 from scripted_render_pipeline.importer.render_specs import Axis, Tile, Section, Stack
 from scripted_render_pipeline.importer import fastem_mipmapper
 
+DS_WIDTH = 2048 # Fixed downsampled image width
+
 
 def clear_image_cache():
     url = "https://sonic.tnw.tudelft.nl/render-ws/v1/imageProcessorCache/allEntries"
@@ -99,7 +101,7 @@ def get_image_stacks(stacks, width=1000, **render):
 
     return images
 
-def create_downsampled_stack(project_dir, stack_2_downsample, width=2048, **render):
+def create_downsampled_stack(project_dir, stack_2_downsample, **render):
     """Create downsampled image stack
 
     returns ds_stack object
@@ -127,7 +129,7 @@ def create_downsampled_stack(project_dir, stack_2_downsample, width=2048, **rend
                                                y=bounds['minY'],
                                                width=(bounds['maxX'] - bounds['minX']),
                                                height=(bounds['maxY'] - bounds['minY']),
-                                               scale=(width / (bounds['maxX'] - bounds['minX'])),
+                                               scale=(DS_WIDTH / (bounds['maxX'] - bounds['minX'])),
                                                img_format='tiff16',
                                                **render)
         # Make imagePyramid
@@ -142,7 +144,7 @@ def create_downsampled_stack(project_dir, stack_2_downsample, width=2048, **rend
             imageRow=0,
             imageCol=0
         )
-        height = ds_image.shape[0]
+        width, height = ds_image.shape[1], ds_image.shape[0]
         spec = renderapi.tilespec.TileSpec(
             imagePyramid=pyramid,
             width=width,
@@ -232,12 +234,12 @@ def get_mosaic(stack, z, width=256, **render):
     return mosaic
 
 
-def get_intrasection_pointmatches(
+def get_pointmatches(
     stack,
     match_collection,
     **render
 ):
-    """Get all intra-section point matches for a given stack
+    """Get all intra-section or inter-section point matches for a given stack
 
     Parameters
     ----------
@@ -269,7 +271,7 @@ def get_intrasection_pointmatches(
             **render
         )
 
-        # Get all the point matches within each section
+        # Get all the point matches 
         matches = renderapi.pointmatch.get_matches_with_group(
             pgroup=sectionId,
             matchCollection=match_collection,
