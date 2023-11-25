@@ -3,12 +3,10 @@ from tqdm.notebook import tqdm
 import numpy as np
 from skimage.exposure import rescale_intensity
 import renderapi
-import tifffile
-import pathlib
 from scripted_render_pipeline.importer.render_specs import Axis, Tile, Section, Stack
 from scripted_render_pipeline.importer import fastem_mipmapper
 
-DS_WIDTH = 2048 # Fixed downsampled image width
+SCALE = 0.05 # Scale at which to render downsampled images
 
 
 def clear_image_cache():
@@ -129,11 +127,14 @@ def create_downsampled_stack(project_dir, stack_2_downsample, **render):
                                                y=bounds['minY'],
                                                width=(bounds['maxX'] - bounds['minX']),
                                                height=(bounds['maxY'] - bounds['minY']),
-                                               scale=(DS_WIDTH / (bounds['maxX'] - bounds['minX'])),
+                                               scale=SCALE,
                                                img_format='tiff16',
                                                **render)
+        ds_image = rescale_image(ds_image, out_range=np.uint8) # Rescale intensities and to 8-bit
+        
         # Make imagePyramid
         ds_section_dir = ds_stack_dir / sectionId
+        ds_section_dir.mkdir(parents=True, exist_ok=True)
         mipmapper = fastem_mipmapper.FASTEM_Mipmapper(project_path=project_dir)
         pyramid = mipmapper.make_pyramid(ds_section_dir,
                                          ds_image,
@@ -282,3 +283,30 @@ def get_pointmatches(
         d_matches[z] = matches
 
     return d_matches
+
+def update_stack_resolution(
+        stack,
+        stackresolutionX,
+        stackresolutionY,
+        stackresolutionZ,
+        **render
+):
+    """Update the stack resolution
+    
+    Parameters
+    ----------
+    stack : str
+    stackresolutionX : float, resolution in X
+    stackresolutionY : float, resolution in Y
+    stackresolutionZ : float, resolution in Z
+    """
+    # Get stack metadata
+    stackversion = renderapi.stack.get_stack_metadata(stack,
+                                                      **render)
+    stackversion.stackResolutionX = stackresolutionX
+    stackversion.stackResolutionY = stackresolutionY
+    stackversion.stackResolutionZ = stackresolutionZ
+    # Update metadata
+    renderapi.stack.set_stack_metadata(stack,
+                                       stackversion,
+                                       **render)
