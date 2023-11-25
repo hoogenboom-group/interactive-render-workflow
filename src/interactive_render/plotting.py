@@ -13,7 +13,6 @@ from .utils import (
     get_pointmatches,
 )
 
-DS_WIDTH = 2048 # Fixed downsampled image width
 WIDTH_FIELD = 6400
 
 
@@ -152,8 +151,9 @@ def f_plot_dsstack_with_matches(
     render,
 ):
     """Support interactive plotting of a downsampled image stack with overlaid matches in z"""
-    # alias for width
+    # width and height plot
     w = width
+    h = dsimages[z].shape[0]
 
     # create figure
     fig, ax = plt.subplots(1, 2, figsize=(10, 5))
@@ -180,15 +180,15 @@ def f_plot_dsstack_with_matches(
             # get pointmatches for tile p, scale and shift them over
             i_p = ts_p.layout.imageRow
             j_p = ts_p.layout.imageCol
-            X_p = np.array(d["matches"]["p"][0]) * (w / DS_WIDTH) + j_p*w
-            Y_p = np.array(d["matches"]["p"][1]) * (w / DS_WIDTH) + i_p*w
+            X_p = np.array(d["matches"]["p"][0]) * (w / ts_p.width) + j_p*w
+            Y_p = np.array(d["matches"]["p"][1]) * (w / ts_p.height) + i_p*w
 
             # get pointmatches for tile q, scale and shift them over
             i_q = ts_q.layout.imageRow
             j_q = ts_q.layout.imageCol
             try:
-                X_q = np.array(d["matches"]["q"][0]) * (w / DS_WIDTH) + j_q*w
-                Y_q = np.array(d["matches"]["q"][1]) * (w / DS_WIDTH) + i_q*w
+                X_q = np.array(d["matches"]["q"][0]) * (w / ts_q.width) + j_q*w
+                Y_q = np.array(d["matches"]["q"][1]) * (w / ts_q.height) + i_q*w
             except IndexError:
                 X_q = np.array([])
                 Y_q = np.array([])
@@ -197,11 +197,14 @@ def f_plot_dsstack_with_matches(
             ax[0].scatter(X_p, Y_p, color='orange', marker='x')
             ax[1].scatter(X_q, Y_q, color='blue', marker='x')
             s_p, s_q = len(X_p), len(X_q)
-            ax[0].text(width/2, width/2, s=s_p, ha="center", va="center",
+            ax[0].text(h/2, w/2, s=s_p, ha="center", va="center",
                     bbox={"facecolor": "none", "edgecolor": "black", "pad": 2})
-            ax[1].text(width/2, width/2, s=s_q, ha="center", va="center",
+            ax[1].text(h/2, w/2, s=s_q, ha="center", va="center",
                     bbox={"facecolor": "none", "edgecolor": "black", "pad": 2})
-
+            
+            # Aesthetics
+            ax[0].set_title(d['pGroupId'])
+            ax[1].set_title(d['qGroupId'])
 
 def plot_stack_with_stitching_matches(
     stack,
@@ -248,7 +251,7 @@ def plot_dsstack_with_alignment_matches(
     _, z_values = get_global_stack_bounds([stack], **render)
 
     # get dsimage stack
-    dsimages = get_image_stacks(stacks=[stack],
+    dsimages = get_image_stacks([stack],
                                 width=width,
                                 **render)
 
