@@ -94,8 +94,8 @@ def get_image_stacks(stacks, width=1000, **render):
                 img_format='tiff16',
                 **render
             )
-            if image == RenderError:
-                image == np.zeros(images[stack][z-1].shape)
+            if not isinstance(image, np.ndarray): # If somehow the get_bb_image failed...
+                image = np.zeros(images[stack][z-1].shape)
             # add to collection
             images[stack][z] = image
     return images
