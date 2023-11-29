@@ -81,24 +81,23 @@ def get_image_stacks(stacks, width=1000, **render):
     for stack in tqdm(stacks):
 
         # render full section image at each z value
-        for z in z_values:
-            try:
-                # render bbox image
-                image = renderapi.image.get_bb_image(
-                    stack=stack,
-                    z=z,
-                    x=bounds['minX'],
-                    y=bounds['minY'],
-                    width=(bounds['maxX'] - bounds['minX']),
-                    height=(bounds['maxY'] - bounds['minY']),
-                    scale=(width / (bounds['maxX'] - bounds['minX'])),
-                    img_format='tiff16',
-                    **render
-                )
-                # add to collection
-                images[stack][z] = image
-            except RenderError: # Cannot render bbox for some reason...
-                pass
+        for z in z_values: 
+            # render bbox image
+            image = renderapi.image.get_bb_image(
+                stack=stack,
+                z=z,
+                x=bounds['minX'],
+                y=bounds['minY'],
+                width=(bounds['maxX'] - bounds['minX']),
+                height=(bounds['maxY'] - bounds['minY']),
+                scale=(width / (bounds['maxX'] - bounds['minX'])),
+                img_format='tiff16',
+                **render
+            )
+            if image == RenderError:
+                image == np.zeros(images[stack][z-1].shape)
+            # add to collection
+            images[stack][z] = image
     return images
 
 def create_downsampled_stack(project_dir, stack_2_downsample, **render):
