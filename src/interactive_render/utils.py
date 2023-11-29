@@ -5,6 +5,7 @@ from skimage.exposure import rescale_intensity
 import renderapi
 from scripted_render_pipeline.importer.render_specs import Axis, Tile, Section, Stack
 from scripted_render_pipeline.importer import fastem_mipmapper
+from renderapi.errors import RenderError
 
 SCALE = 0.05 # Scale at which to render downsampled images
 
@@ -81,22 +82,23 @@ def get_image_stacks(stacks, width=1000, **render):
 
         # render full section image at each z value
         for z in z_values:
-
-            # render bbox image
-            image = renderapi.image.get_bb_image(
-                stack=stack,
-                z=z,
-                x=bounds['minX'],
-                y=bounds['minY'],
-                width=(bounds['maxX'] - bounds['minX']),
-                height=(bounds['maxY'] - bounds['minY']),
-                scale=(width / (bounds['maxX'] - bounds['minX'])),
-                img_format='tiff16',
-                **render
-            )
-            # add to collection
-            images[stack][z] = image
-
+            try:
+                # render bbox image
+                image = renderapi.image.get_bb_image(
+                    stack=stack,
+                    z=z,
+                    x=bounds['minX'],
+                    y=bounds['minY'],
+                    width=(bounds['maxX'] - bounds['minX']),
+                    height=(bounds['maxY'] - bounds['minY']),
+                    scale=(width / (bounds['maxX'] - bounds['minX'])),
+                    img_format='tiff16',
+                    **render
+                )
+                # add to collection
+                images[stack][z] = image
+            except RenderError: # Cannot render bbox for some reason...
+                pass
     return images
 
 def create_downsampled_stack(project_dir, stack_2_downsample, **render):
