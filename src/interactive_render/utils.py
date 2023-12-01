@@ -91,6 +91,7 @@ def get_image_stacks(stacks, width=1000, **render):
                 width=(bounds['maxX'] - bounds['minX']),
                 height=(bounds['maxY'] - bounds['minY']),
                 scale=(width / (bounds['maxX'] - bounds['minX'])),
+                maxTileSpecsToRender=10000,
                 img_format='tiff16',
                 **render
             )
@@ -129,6 +130,7 @@ def create_downsampled_stack(project_dir, stack_2_downsample, **render):
                                                width=(bounds['maxX'] - bounds['minX']),
                                                height=(bounds['maxY'] - bounds['minY']),
                                                scale=SCALE,
+                                               maxTileSpecsToRender=10000,
                                                img_format='tiff16',
                                                **render)
         ds_image = rescale_image(ds_image, out_range=np.uint8) # Rescale intensities and to 8-bit
