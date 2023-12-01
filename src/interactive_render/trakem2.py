@@ -38,7 +38,7 @@ def create_patch_xml(tile_spec):
                 transform="matrix({AT.M00},{AT.M10},{AT.M01},{AT.M11},{AT.B0},{AT.B1})"
                 links=""
                 type="1"
-                file_path="{ts.ip[0].imageUrl.split('://')[1]}"
+                file_path="{ts.ip[0].imageUrl}"
                 title="{ts.tileId}"
                 style="fill-opacity:1.0;stroke:#ffff00;"
                 o_width="{ts.width:.0f}"
@@ -76,7 +76,7 @@ def create_layer_xml(stack, z, **render):
     return layer
 
 
-def create_stack_xml(stack, z_values=None, render=None):
+def create_stack_xml(stack, z_values=None, **render):
     """Generate xml data for a given stack"""
     # Fetch z values for stack
     if z_values is None:
