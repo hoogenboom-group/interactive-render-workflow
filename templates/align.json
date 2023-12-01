@@ -3,7 +3,7 @@
    "last_section": 0,
    "solve_type": "3D",
    "close_stack": "True",
-   "transformation": "affine",
+   "transformation": "SimilarityModel",
    "start_from_file": "",
    "output_mode": "stack",
    "log_level": "INFO",
@@ -52,9 +52,11 @@
        "cross_pt_weight": 1.0,
        "npts_min": 5,
        "npts_max": 500,
+       "choose_random":"False",
        "inverse_dz":"True"
    },
    "regularization": {
+       "freeze_first_tile": "True",
        "default_lambda": 0.005,
        "translation_factor": 0.005,
        "thinplate_factor": 1e-5
