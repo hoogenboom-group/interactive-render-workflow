@@ -141,7 +141,8 @@ def f_plot_stack_with_matches(
             s = f"{len(vertices)}"
             ax.text(x, y, s=s, ha="center", va="center",
                     bbox={"facecolor": "none", "edgecolor": "black", "pad": 2})
-            
+
+
 def f_plot_dsstack_with_matches(
     stack,
     z,
@@ -205,6 +206,7 @@ def f_plot_dsstack_with_matches(
             # Aesthetics
             ax[0].set_title(d['pGroupId'])
             ax[1].set_title(d['qGroupId'])
+
 
 def plot_stack_with_stitching_matches(
     stack,
@@ -360,3 +362,99 @@ def plot_stitching_matches_columnwise(
         # aesthetics
         title = f"Z = {z}"
         axmap[z].set_title(title)
+
+
+def f_plot_aligned_stack_with_matches(
+    stack,
+    z,
+    mosaics,
+    d_matches,
+    width,
+    render,
+):
+    """Support interactive plotting of a roughly aligned image stack with overlaid fine matches in z"""
+    # width and height plot
+    w = width
+
+    # create figure
+    fig, ax = plt.subplots(1, 2, figsize=(10, 5))
+
+    # plot mosaic
+    ax[0].imshow(
+        mosaics[z],
+        cmap="Greys_r",
+    )
+
+    ax[1].imshow(
+        mosaics[z+1],
+        cmap="Greys_r",
+    )
+
+    # loop through tilepairs in sections pair
+    for d in d_matches[z]:
+
+        # get tile specifications for tilepair
+        ts_p = renderapi.tilespec.get_tile_spec(stack=stack, tile=d["pId"], **render)
+        ts_q = renderapi.tilespec.get_tile_spec(stack=stack, tile=d["qId"], **render)
+
+        if (ts_p is not None) and (ts_q is not None):
+            
+            # get pointmatches for tile p, scale and shift them over
+            i_p = ts_p.layout.imageRow
+            j_p = ts_p.layout.imageCol
+            X_p = np.array(d["matches"]["p"][0]) * (w/WIDTH_FIELD) + j_p*w
+            Y_p = np.array(d["matches"]["p"][1]) * (w/WIDTH_FIELD) + i_p*w
+
+            # get pointmatches for tile q, scale and shift them over
+            i_q = ts_q.layout.imageRow
+            j_q = ts_q.layout.imageCol
+            X_q = np.array(d["matches"]["q"][0]) * (w/WIDTH_FIELD) + j_q*w
+            Y_q = np.array(d["matches"]["q"][1]) * (w/WIDTH_FIELD) + i_q*w
+
+            # Plot matches
+            ax[0].scatter(X_p, Y_p, color='orange', marker='x')
+            ax[1].scatter(X_q, Y_q, color='blue', marker='x')
+            s_p, s_q = len(X_p), len(X_q)
+            ax[0].text(w/2, w/2, s=s_p, ha="center", va="center",
+                    bbox={"facecolor": "none", "edgecolor": "black", "pad": 2})
+            ax[1].text(w/2, w/2, s=s_q, ha="center", va="center",
+                    bbox={"facecolor": "none", "edgecolor": "black", "pad": 2})
+            
+            # Aesthetics
+            ax[0].set_title(d['pGroupId'])
+            ax[1].set_title(d['qGroupId'])
+
+
+def plot_aligned_stack_with_alignment_matches(
+    stack,
+    match_collection,
+    width=256,
+    **render
+):
+    """Plot rough aligned stack interactively and show matches between z-levels"""
+    # get z values (bounds not needed)
+    _, z_values = get_global_stack_bounds([stack], **render)
+
+    # get stack of mosaics
+    mosaics = rescale_image(
+        np.stack([get_mosaic(stack, z, width, **render) for z in z_values]),
+        k=3,
+    )
+
+    # get inter-section point matches
+    d_matches = get_pointmatches(
+        stack,
+        match_collection,
+        **render
+    )
+
+    # interaction magic
+    interact(
+        f_plot_aligned_stack_with_matches,
+        stack=fixed(stack),
+        z=IntSlider(min=min(z_values), max=max(z_values)-1),
+        mosaics=fixed(mosaics),
+        d_matches=fixed(d_matches),
+        width=fixed(width),
+        render=fixed(render)
+    )
