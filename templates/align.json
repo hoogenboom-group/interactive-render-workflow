@@ -49,16 +49,16 @@
    "matrix_assembly": {
        "depth": 2,
        "montage_pt_weight": 1.0,
-       "cross_pt_weight": 1.0,
+       "cross_pt_weight": 0.5,
        "npts_min": 5,
        "npts_max": 500,
        "choose_random":"False",
        "inverse_dz":"True"
    },
    "regularization": {
-       "freeze_first_tile": "True",
-       "default_lambda": 0.005,
-       "translation_factor": 0.005,
+       "freeze_first_tile": "false",
+       "default_lambda": 1e3,
+       "translation_factor": 0.00005,
        "thinplate_factor": 1e-5
    }
 }
