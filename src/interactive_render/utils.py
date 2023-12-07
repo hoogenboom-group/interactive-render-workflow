@@ -2,13 +2,16 @@ import requests
 from tqdm.notebook import tqdm
 import numpy as np
 from skimage.exposure import rescale_intensity
+from skimage.transform import pyramid_gaussian
 import renderapi
 from scripted_render_pipeline.importer.render_specs import Axis, Tile, Section, Stack
 from scripted_render_pipeline.importer import fastem_mipmapper
 from renderapi.errors import RenderError
+import pathlib
+import tifffile
 
 SCALE = 0.05 # Scale at which to render downsampled images
-
+BASE_URL = ""  # "file://"
 
 def clear_image_cache():
     url = "https://sonic.tnw.tudelft.nl/render-ws/v1/imageProcessorCache/allEntries"
@@ -44,7 +47,6 @@ def rescale_image(image, k=3, out_range=np.uint16):
         in_range=(vmin, vmax),
         out_range=out_range
     )
-
 
 def get_global_stack_bounds(stacks, **render):
     """Get global stack boundaries across multiple stacks"""
@@ -101,18 +103,32 @@ def get_image_stacks(stacks, width=1000, **render):
             images[stack][z] = image
     return images
 
-def create_downsampled_stack(project_dir, stack_2_downsample, **render):
+def create_downsampled_stack(project_dir, stack_2_downsample, trakem=False, **render):
     """Create downsampled image stack
 
-    returns ds_stack object
+    Parameters
+    ----------
+    project_dir : Path
+        directory where project data is stored
+    stack_2_downsample : dict 
+        input and output stack name
+    trakem: Bool
+        whether to make stack for importing into TrakEM2 to do manual rough alignment
+    render : dict
+        render parameters
+
+    returns "ds_stack" object
     """
     all_sections = {}
     stack = stack_2_downsample['in']
-    ds_stack_name = stack_2_downsample["out"]
+    if trakem:
+        ds_stack_name = f"{stack_2_downsample['out']}_trakem"
+    else:
+        ds_stack_name = stack_2_downsample['out']
     bounds = renderapi.stack.get_stack_bounds(stack, 
                                               **render)
     z_values = renderapi.stack.get_z_values_for_stack(stack, 
-                                                      **render)
+                                                      **render)                                                   
     ds_stack_dir = project_dir / "_dsmontages" / ds_stack_name
     ds_stack_dir.mkdir(parents=True, exist_ok=True)
     
@@ -136,12 +152,22 @@ def create_downsampled_stack(project_dir, stack_2_downsample, **render):
         ds_image = rescale_image(ds_image, out_range=np.uint8) # Rescale intensities and to 8-bit
         
         # Make imagePyramid
-        ds_section_dir = ds_stack_dir / sectionId
-        ds_section_dir.mkdir(parents=True, exist_ok=True)
-        mipmapper = fastem_mipmapper.FASTEM_Mipmapper(project_path=project_dir)
-        pyramid = mipmapper.make_pyramid(ds_section_dir,
-                                         ds_image,
-                                         description=None)
+        if trakem: # imagePyramid with one level
+            leveldict = {}
+            new_file_name = f"{sectionId}.tif"
+            new_file_path = ds_stack_dir / new_file_name
+            with tifffile.TiffWriter(new_file_path) as fp:
+                fp.write(ds_image.astype(np.uint8))
+            url = BASE_URL + new_file_path
+            leveldict[0] = renderapi.image_pyramid.MipMap(url) # One level...
+            pyramid = renderapi.image_pyramid.ImagePyramid(leveldict)
+        else: # Actually make a pyramid
+            ds_section_dir = ds_stack_dir / sectionId
+            ds_section_dir.mkdir(parents=True, exist_ok=True)
+            mipmapper = fastem_mipmapper.FASTEM_Mipmapper(project_path=project_dir)
+            pyramid = mipmapper.make_pyramid(ds_section_dir,
+                                             ds_image,
+                                             description=None)
         # TileSpecs for building render stack
         layout = renderapi.tilespec.Layout(
             sectionId=sectionId,
@@ -176,6 +202,7 @@ def create_downsampled_stack(project_dir, stack_2_downsample, **render):
         ds_stack.add_section(section)
 
     return ds_stack # Stack of downsampled images
+
     
 def get_mosaic(stack, z, width=256, **render):
     """Get mosaic
