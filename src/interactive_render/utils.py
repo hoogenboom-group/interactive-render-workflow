@@ -389,3 +389,6 @@ def update_stack_resolution(
     renderapi.stack.set_stack_metadata(stack,
                                        stackversion,
                                        **render)
+    renderapi.stack.set_stack_state(stack,
+                                    state='COMPLETE',
+                                    **render)
