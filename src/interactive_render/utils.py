@@ -158,7 +158,7 @@ def create_downsampled_stack(project_dir, stack_2_downsample, trakem=False, **re
             new_file_path = ds_stack_dir / new_file_name
             with tifffile.TiffWriter(new_file_path) as fp:
                 fp.write(ds_image.astype(np.uint8))
-            url = BASE_URL + new_file_path
+            url = BASE_URL + new_file_path.as_posix()
             leveldict[0] = renderapi.image_pyramid.MipMap(url) # One level...
             pyramid = renderapi.image_pyramid.ImagePyramid(leveldict)
         else: # Actually make a pyramid
@@ -265,12 +265,12 @@ def get_mosaic(stack, z, width=256, **render):
     return mosaic
 
 
-def get_pointmatches(
+def get_stitching_pointmatches(
     stack,
     match_collection,
     **render
 ):
-    """Get all intra-section or inter-section point matches for a given stack
+    """Get all intra-section point matches for a given stack
 
     Parameters
     ----------
@@ -303,7 +303,56 @@ def get_pointmatches(
         )
 
         # Get all the point matches 
-        matches = renderapi.pointmatch.get_matches_with_group(
+        matches = renderapi.pointmatch.get_matches_within_group(
+            pgroup=sectionId,
+            matchCollection=match_collection,
+            **render
+        )
+
+        # Add to collection
+        d_matches[z] = matches
+
+    return d_matches
+
+def get_alignment_pointmatches(
+    stack,
+    match_collection,
+    **render
+):
+    """Get all inter-section point matches for a given stack
+
+    Parameters
+    ----------
+    stack : str
+    match_collection : str
+    render : dict
+
+    Returns
+    -------
+    d_matches : dict
+        Mapping of ...
+    """
+    # Collection
+    d_matches = {}
+
+    # Get z values
+    z_values = renderapi.stack.get_z_values_for_stack(
+        stack=stack,
+        **render
+    )
+
+    # Loop through each section
+    for z in z_values:
+
+        # Get sectionId from z value
+        sectionId = renderapi.stack.get_sectionId_for_z(
+            stack=stack,
+            z=z,
+            **render
+        )
+
+        # Get all the point matches 
+        matches = renderapi.pointmatch.get_matches_outside_group(
             pgroup=sectionId,
             matchCollection=match_collection,
             **render
