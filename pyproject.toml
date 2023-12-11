@@ -35,6 +35,10 @@ dependencies = [
   "scikit-image",
   "tifffile",
   "tqdm",
+  "bigfeta",
+  "jupyter",
+  "ipywidgets",
+  "scipy"
 ]
 
 [project.optional-dependencies]
