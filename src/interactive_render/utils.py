@@ -304,7 +304,7 @@ def get_stitching_pointmatches(
 
         # Get all the point matches 
         matches = renderapi.pointmatch.get_matches_within_group(
-            pgroup=sectionId,
+            groupId=sectionId,
             matchCollection=match_collection,
             **render
         )
@@ -353,7 +353,7 @@ def get_alignment_pointmatches(
 
         # Get all the point matches 
         matches = renderapi.pointmatch.get_matches_outside_group(
-            pgroup=sectionId,
+            groupId=sectionId,
             matchCollection=match_collection,
             **render
         )
