@@ -10,7 +10,8 @@ from .utils import (
     get_global_stack_bounds,
     get_image_stacks,
     get_mosaic,
-    get_pointmatches,
+    get_stitching_pointmatches,
+    get_alignment_pointmatches,
 )
 
 WIDTH_FIELD = 6400
@@ -225,7 +226,7 @@ def plot_stack_with_stitching_matches(
     )
 
     # get intra-section point matches
-    d_matches = get_pointmatches(
+    d_matches = get_stitching_pointmatches(
         stack,
         match_collection,
         **render
@@ -258,7 +259,7 @@ def plot_dsstack_with_alignment_matches(
                                 **render)
 
     # get inter-section point matches
-    d_matches = get_pointmatches(
+    d_matches = get_alignment_pointmatches(
         stack,
         match_collection,
         **render
@@ -309,7 +310,7 @@ def plot_stitching_matches_columnwise(
         )
 
     # get intra-section point matches
-    d_matches = get_pointmatches(
+    d_matches = get_stitching_pointmatches(
         stack=stack,
         match_collection=match_collection,
         **render
@@ -442,7 +443,7 @@ def plot_aligned_stack_with_alignment_matches(
     )
 
     # get inter-section point matches
-    d_matches = get_pointmatches(
+    d_matches = get_alignment_pointmatches(
         stack,
         match_collection,
         **render
