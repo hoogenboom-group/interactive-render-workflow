@@ -429,6 +429,7 @@ def render_aligned_tiles(
                                              y=bbox[1],
                                              width=bbox[2],
                                              height=bbox[3],
+                                             scale=0.5,
                                              **render)
-        images[z] = image
+        images[z] = image[:,:,0]
     return images 

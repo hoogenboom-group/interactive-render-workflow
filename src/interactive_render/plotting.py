@@ -493,7 +493,7 @@ def f_plot_aligned_tiles(
     # Extent
     extent = np.min(images[z]), np.max(images[z]), np.min(images[z]), np.max(images[z])
     # Create figure
-    fig = plt.figure(figsize=(5,5))
+    fig = plt.figure(figsize=(4,4))
     # Add images
-    im1 = plt.imshow(images[z], cmap="Greys_r", alpha=alpha1, extent=extent)
-    im2 = plt.imshow(images[z+1], cmap="Greys_r", alpha=alpha2, extent=extent)
+    im1 = plt.imshow(images[z], cmap="Greens_r", alpha=alpha1, extent=extent)
+    im2 = plt.imshow(images[z+1], cmap="Oranges_r", alpha=alpha2, extent=extent)
