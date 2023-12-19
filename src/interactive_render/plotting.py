@@ -2,7 +2,7 @@ from tqdm.notebook import tqdm
 import numpy as np
 import matplotlib.pyplot as plt
 from matplotlib.collections import LineCollection
-from ipywidgets import interact, fixed, IntSlider
+from ipywidgets import interact, fixed, IntSlider, FloatSlider
 import renderapi
 
 from .utils import (
@@ -12,6 +12,7 @@ from .utils import (
     get_mosaic,
     get_stitching_pointmatches,
     get_alignment_pointmatches,
+    render_aligned_tiles
 )
 
 WIDTH_FIELD = 6400
@@ -459,3 +460,40 @@ def plot_aligned_stack_with_alignment_matches(
         width=fixed(width),
         render=fixed(render)
     )
+
+def plot_aligned_tiles(
+    stack,
+    width=1024,
+    alpha=0.5,
+    **render
+):
+    """Plot tile_pair in z and neighbors to show alignment"""
+    # get bb images of tile_pair
+    images = render_aligned_tiles(stack=stack,
+                                  width=width,
+                                  **render)
+    z_values = renderapi.stack.get_z_values_for_stack(stack=stack,
+                                                      **render)
+    # interaction magic
+    interact(
+        f_plot_aligned_tiles,
+        z=IntSlider(min=min(z_values), max=max(z_values)-1),
+        images=fixed(images),
+        alpha1=FloatSlider(value=alpha, min=0, max=1, step=0.01, description='alpha1'),
+        alpha2=FloatSlider(value=alpha, min=0, max=1, step=0.01, description='alpha1')
+    )
+
+def f_plot_aligned_tiles(
+    z,
+    images,
+    alpha1=0.5,
+    alpha2=0.5
+):
+    """Support interactive plotting of an aligned stack"""
+    # Extent
+    extent = np.min(images[z]), np.max(images[z]), np.min(images[z]), np.max(images[z])
+    # Create figure
+    fig = plt.figure(figsize=(5,5))
+    # Add images
+    im1 = plt.imshow(images[z], cmap="Greys_r", alpha=alpha1, extent=extent)
+    im2 = plt.imshow(images[z+1], cmap="Greys_r", alpha=alpha2, extent=extent)

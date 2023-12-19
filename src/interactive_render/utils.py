@@ -392,3 +392,43 @@ def update_stack_resolution(
     renderapi.stack.set_stack_state(stack,
                                     state='COMPLETE',
                                     **render)
+
+def render_aligned_tiles(
+        stack, 
+        width=1024,
+        **render):
+    """Renders images of all z levels in the aligned stack
+
+    Parameters
+    ----------
+    stack : str
+        Stack from which to render neighborhood image
+    width : float
+        Width of rendered layer images in pixels
+    render : `renderapi.render.RenderClient`
+        `render-ws` instance
+    """
+    images = {}
+    bounds = renderapi.stack.get_stack_bounds(stack=stack,
+                                              **render)
+    z_values = renderapi.stack.get_z_values_for_stack(stack=stack,
+                                                      **render)
+    # Get bbox of center of stack with size specified by input width
+    centerX = bounds['minX'] + bounds['maxX'] / 2
+    centerY = bounds['minY'] + bounds['maxY'] / 2
+    bbox = (int(centerX - 0.5 * width),
+            int(centerY - 0.5 * width),
+            width,
+            width)
+    # Loop over z values in stack
+    for z in z_values:
+        # Render bbox
+        image = renderapi.image.get_bb_image(stack=stack,
+                                             z=z,
+                                             x=bbox[0],
+                                             y=bbox[1],
+                                             width=bbox[2],
+                                             height=bbox[3],
+                                             **render)
+        images[z] = image
+    return images 
