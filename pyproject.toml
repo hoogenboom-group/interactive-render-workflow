@@ -39,7 +39,8 @@ dependencies = [
   "bigfeta",
   "jupyter",
   "ipywidgets",
-  "scipy"
+  "scipy",
+  "natsort",
 ]
 
 [project.optional-dependencies]
