@@ -1,9 +1,12 @@
-from tqdm.notebook import tqdm
 import numpy as np
 import matplotlib.pyplot as plt
-from matplotlib.collections import LineCollection
-from ipywidgets import interact, fixed, IntSlider, FloatSlider
 import renderapi
+import tifffile
+
+from matplotlib.collections import LineCollection
+from ipywidgets import interact, fixed, IntSlider, FloatSlider, FloatText
+from tqdm.notebook import tqdm
+from scripted_render_pipeline.postcorrector.post_corrector import Post_Corrector
 
 from .utils import (
     rescale_image,
@@ -480,7 +483,7 @@ def plot_aligned_tiles(
         z=IntSlider(min=min(z_values), max=max(z_values)-1),
         images=fixed(images),
         alpha1=FloatSlider(value=alpha, min=0, max=1, step=0.01, description='alpha1'),
-        alpha2=FloatSlider(value=alpha, min=0, max=1, step=0.01, description='alpha1')
+        alpha2=FloatSlider(value=alpha, min=0, max=1, step=0.01, description='alpha2')
     )
 
 def f_plot_aligned_tiles(
@@ -497,3 +500,83 @@ def f_plot_aligned_tiles(
     # Add images
     im1 = plt.imshow(images[z], cmap="Greens_r", alpha=alpha1, extent=extent)
     im2 = plt.imshow(images[z+1], cmap="Oranges_r", alpha=alpha2, extent=extent)
+    
+def plot_images_with_artefacts(
+    filepaths,
+    med,
+    mad,
+    pct=0.1,
+    a=1,
+    vmin=0,
+    vmax=65535    
+):
+    """Plot images with artefacts for outlier detection parameter optimization"""
+    # Get raw images
+    raw_images = []
+    for fp in tqdm(filepaths):
+        tiff = tifffile.TiffFile(fp.as_posix()) # Read tiff and extract lowest resolution page from pyramid
+        image = tiff.pages[-1].asarray()
+        raw_images.append(image)
+        
+    # interaction magic
+    interact(
+        f_plot_images_with_artefacts,
+        filepaths=fixed(filepaths),
+        images=fixed(raw_images),
+        med=fixed(med),
+        mad=fixed(mad),
+        pct=FloatText(value=pct, description='percentile', disabled=False),
+        a=FloatText(value=a, description='scaling factor a', disabled=False),
+        vmin=IntSlider(vmin, 0, 65535),
+        vmax=IntSlider(vmax, 0, 65535), 
+    )
+
+def f_plot_images_with_artefacts(
+    filepaths,
+    images,
+    med,
+    mad,
+    pct,
+    a,
+    vmin=0,
+    vmax=65535      
+):  
+    """Support interactive plotting of images with artifacts"""
+    postcorrector = Post_Corrector(filepaths)
+    # Create figure
+    nrows, ncols, _ = [int(i) + 1 for i in filepaths[-1].stem.split('_')]
+    fig, axes = plt.subplots(ncols=ncols, nrows=nrows,
+                             figsize=(2*ncols, 2*nrows))
+    # Loop over raw image files
+    for fp, im in zip(filepaths, images):
+        # Determine row, col
+        row, col, _ = [int(i) for i in fp.stem.split('_')]
+        # Detect artefacts
+        corrupted = postcorrector.has_artefact(im, med=med, mad=mad, pct=pct, a=a)
+        # Colorize
+        tint_green = np.array([0, 1, 0, 0.1])
+        tint_red = np.array([1, 0, 0, 0.1])
+        dy, dx = im.shape
+        if corrupted:
+            mask = np.ones((dy, dx, 4)) * tint_red
+        else:
+            mask = np.ones((dy, dx, 4)) * tint_green
+
+        # Plot image + mask
+        axes[row, col].imshow(rescale_image(im), cmap='Greys_r',
+                              vmin=vmin, vmax=vmax)
+        axes[row, col].imshow(mask)
+
+        # Give label
+        title = f"{row:03d} x {col:03d}"
+        axes[row, col].text(0.5, 0.95, title, ha='center', va='top',
+                            transform=axes[row, col].transAxes,
+                            fontsize=12, bbox=dict(facecolor='white', alpha=0.5))
+        # Remove axis ticks
+        axes[row, col].axis('off')
+    
+    # Aesthetics
+    plt.subplots_adjust(hspace=0.02, wspace=-0.02)
+    
+    
+    
