@@ -320,6 +320,8 @@ def get_alignment_pointmatches(
     **render
 ):
     """Get all inter-section point matches for a given stack
+    Only retrieves matches between sections adjacent in z
+    Since its difficult to plot matches further away
 
     Parameters
     ----------
@@ -342,22 +344,30 @@ def get_alignment_pointmatches(
     )
 
     # Loop through each section
-    for z in z_values:
+    for z in z_values[:-1]:
 
         # Get sectionId from z value
-        sectionId = renderapi.stack.get_sectionId_for_z(
+        psectionId = renderapi.stack.get_sectionId_for_z(
             stack=stack,
             z=z,
             **render
         )
-
-        # Get all the point matches 
-        matches = renderapi.pointmatch.get_matches_outside_group(
-            groupId=sectionId,
-            matchCollection=match_collection,
+        
+        # Get sectionId from z+1 value
+        qsectionId = renderapi.stack.get_sectionId_for_z(
+            stack=stack,
+            z=z+1,
             **render
         )
 
+        # Get all the point matches 
+        matches = renderapi.pointmatch.get_matches_from_group_to_group(
+            pgroup=psectionId,
+            qgroup=qsectionId,
+            matchCollection=match_collection,
+            **render
+        )
+        
         # Add to collection
         d_matches[z] = matches
 

@@ -124,7 +124,7 @@ def f_plot_stack_with_matches(
             j_p = ts_p.layout.imageCol
             X_p = np.array(d["matches"]["p"][0]) * (w/WIDTH_FIELD) + j_p*w
             Y_p = np.array(d["matches"]["p"][1]) * (w/WIDTH_FIELD) + i_p*w
-
+                
             # get pointmatches for tile q, scale and shift them over
             i_q = ts_q.layout.imageRow
             j_q = ts_q.layout.imageCol
@@ -176,41 +176,39 @@ def f_plot_dsstack_with_matches(
     )
     # loop through point matches for given section-pair
     for d in d_matches[z]:
+        if d:
+            # get tile specifications for tile pair
+            ts_p = renderapi.tilespec.get_tile_spec(stack=stack, tile=d["pId"], **render)
+            ts_q = renderapi.tilespec.get_tile_spec(stack=stack, tile=d["qId"], **render)
 
-        # get tile specifications for tile pair
-        ts_p = renderapi.tilespec.get_tile_spec(stack=stack, tile=d["pId"], **render)
-        ts_q = renderapi.tilespec.get_tile_spec(stack=stack, tile=d["qId"], **render)
+            if (ts_p is not None) and (ts_q is not None):
+                # get pointmatches for tile p, scale
+                X_p = np.array(d["matches"]["p"][0]) * (w / ts_p.width) 
+                Y_p = np.array(d["matches"]["p"][1]) * (w / ts_p.height) 
 
-        if (ts_p is not None) and (ts_q is not None):
+                # get pointmatches for tile q, scale
+                try:
+                    X_q = np.array(d["matches"]["q"][0]) * (w / ts_q.width) 
+                    Y_q = np.array(d["matches"]["q"][1]) * (w / ts_q.height) 
+                except IndexError:
+                    X_q = np.array([])
+                    Y_q = np.array([])
+        else:
+            X_q = np.array([])
+            Y_q = np.array([])
 
-            # get pointmatches for tile p, scale and shift them over
-            i_p = ts_p.layout.imageRow
-            j_p = ts_p.layout.imageCol
-            X_p = np.array(d["matches"]["p"][0]) * (w / ts_p.width) + j_p*w
-            Y_p = np.array(d["matches"]["p"][1]) * (w / ts_p.height) + i_p*w
-
-            # get pointmatches for tile q, scale and shift them over
-            i_q = ts_q.layout.imageRow
-            j_q = ts_q.layout.imageCol
-            try:
-                X_q = np.array(d["matches"]["q"][0]) * (w / ts_q.width) + j_q*w
-                Y_q = np.array(d["matches"]["q"][1]) * (w / ts_q.height) + i_q*w
-            except IndexError:
-                X_q = np.array([])
-                Y_q = np.array([])
-
-            # Plot matches
-            ax[0].scatter(X_p, Y_p, color='orange', marker='x')
-            ax[1].scatter(X_q, Y_q, color='blue', marker='x')
-            s_p, s_q = len(X_p), len(X_q)
-            ax[0].text(h/2, w/2, s=s_p, ha="center", va="center",
-                    bbox={"facecolor": "none", "edgecolor": "black", "pad": 2})
-            ax[1].text(h/2, w/2, s=s_q, ha="center", va="center",
-                    bbox={"facecolor": "none", "edgecolor": "black", "pad": 2})
-            
-            # Aesthetics
-            ax[0].set_title(d['pGroupId'])
-            ax[1].set_title(d['qGroupId'])
+        # Plot matches
+        ax[0].scatter(X_p, Y_p, color='orange', marker='x')
+        ax[1].scatter(X_q, Y_q, color='blue', marker='x')
+        s_p, s_q = len(X_p), len(X_q)
+        ax[0].text(h/2, w/2, s=s_p, ha="center", va="center",
+                bbox={"facecolor": "none", "edgecolor": "black", "pad": 2})
+        ax[1].text(h/2, w/2, s=s_q, ha="center", va="center",
+                bbox={"facecolor": "none", "edgecolor": "black", "pad": 2})
+        
+        # Aesthetics
+        ax[0].set_title(d['pGroupId'])
+        ax[1].set_title(d['qGroupId'])
 
 
 def plot_stack_with_stitching_matches(
