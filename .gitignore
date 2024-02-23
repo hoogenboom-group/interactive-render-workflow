@@ -136,3 +136,6 @@ docs/*.sec
 # VS code stuff
 *.code-workspace
 .vscode/*
+
+# do not sync logs
+logs/
