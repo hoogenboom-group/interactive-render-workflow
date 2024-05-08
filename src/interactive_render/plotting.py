@@ -542,7 +542,12 @@ def f_plot_images_with_artefacts(
     """Support interactive plotting of images with artifacts"""
     postcorrector = Post_Corrector(filepaths)
     # Create figure
-    nrows, ncols, _ = [int(i) + 1 for i in filepaths[-1].stem.split('_')]
+    i_rows, i_cols = [], []
+    for filepath in filepaths:
+        row, col, _ = filepath.stem.split('_')
+        i_rows.append(int(row))
+        i_cols.append(int(col))
+    nrows, ncols = max(i_rows) + 1, max(i_cols) + 1
     fig, axes = plt.subplots(ncols=ncols, nrows=nrows,
                              figsize=(2*ncols, 2*nrows))
     # Loop over raw image files
