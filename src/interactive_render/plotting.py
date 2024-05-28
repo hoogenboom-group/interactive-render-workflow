@@ -100,9 +100,12 @@ def f_plot_stack_with_matches(
     """Support interactive plotting of a stack with overlaid stitch lines"""
     # alias for width
     w = width
+    
+    # 
+    bounds = renderapi.stack.get_stack_bounds(stack, **render)
 
     # create figure
-    fig, ax = plt.subplots(figsize=(5, 5))
+    fig, ax = plt.subplots(figsize=(10 * bounds["maxY"]/128000, 10 * bounds["maxX"]/128000))
 
     # plot mosaic
     ax.imshow(
