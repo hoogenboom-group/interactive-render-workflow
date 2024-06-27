@@ -8,13 +8,13 @@ The following is currently supported:
 - 3D alignment
 - Export to local WebKnossos instances
 
-### Requirements
+## Requirements
 - Linux distribution with a decent computation power (>128 GB RAM, >40 CPU cores).
 - [render-ws](https://github.com/saalfeldlab/render/blob/b06be441f3c78e1423c54bce20b291752c6d0773/docs/src/site/markdown/render-ws.md) installation
 - [scripted-render-pipeline](https://github.com/hoogenboom-group/scripted-render-pipeline) installation
 - Local WebKnossos instance. Since we are using a self-hosted WebKnossos instance, export to the [Remote WebKnossos](https://webknossos.org/) is currently not supported be can be considered on request. 
 
-### Installation
+## Installation
 It is recommended to install `interactive-render-workflow` in a [Python virtual environment](https://docs.python.org/3/library/venv.html) or with help of a Python environment manager such as [Conda](https://docs.conda.io/en/latest/) or [Mamba](https://mamba.readthedocs.io/en/latest/user_guide/mamba.html), to prevent changes to your system Python installation.
 
 Instructions for venv (Python virtual environment, requires Python3.10 installation)
@@ -34,7 +34,7 @@ Clone `BigFeta` into a suitable directory (required for alignment scripts)
 git clone git://github.com/AllenInstitute/BigFeta/
 ```
 
-### Usage
+## Usage
 The usage is covered entirely by JuPyter Notebooks:
 1. `post-correct.ipynb` is for optimizing post-correction for a single section and then applying these settings to all sections
 2. `import.ipynb` is for import to `render-ws`
@@ -45,7 +45,7 @@ The usage is covered entirely by JuPyter Notebooks:
 
 We are currently writing routines to perform stitching and alignment using alternative feature-finding algorithm implementations (`stitch.ipynb`, `align.ipynb`). These are still under construction.
 
-# License
+## License
 Licensed under the GNU Public license, Version 3.0 (the "License"); you may not use this software except in compliance with the License.
 
 Unless required by applicable law or agreed to in writing, software distributed under the License is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the specific language governing permissions and limitations under the License.
