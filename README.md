@@ -8,7 +8,7 @@ The following is currently supported:
 - 3D alignment
 - Export to local WebKnossos instances
 
-## Requirements
+### Requirements
 - Linux distribution with a decent computation power (>128 GB RAM, >40 CPU cores).
 - [render-ws](https://github.com/saalfeldlab/render/blob/b06be441f3c78e1423c54bce20b291752c6d0773/docs/src/site/markdown/render-ws.md) installation
 - [scripted-render-pipeline](https://github.com/hoogenboom-group/scripted-render-pipeline) installation
