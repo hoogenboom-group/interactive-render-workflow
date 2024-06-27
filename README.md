@@ -1,5 +1,5 @@
 # interactive-render-workflow
-Interactive workflow for aligning volume electron microscopy datasets derived from [FAST-EM](https://www.delmic.com/en/products/fast-imaging/), making use of [render-ws](https://github.com/saalfeldlab/render). This software is being used to reconstruct FAST-EM array tomography datasets as described in [Kievits et al. (2024)](add_doi). The software performs interactive post-correction of FAST-EM image data, import to `render-ws`, 2D stitching, 3D alignment and export to WebKnossos. 
+Interactive workflow for aligning volume electron microscopy datasets derived from [FAST-EM](https://www.delmic.com/en/products/fast-imaging/fast-em), making use of [render-ws](https://github.com/saalfeldlab/render). This software is being used to reconstruct FAST-EM array tomography datasets as described in [Kievits et al. (2024)](add_doi). The software performs interactive post-correction of FAST-EM image data, import to `render-ws`, 2D stitching, 3D alignment and export to WebKnossos. 
 
 The following is currently supported:
 - Post-correction of FAST-EM image data
