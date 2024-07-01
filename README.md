@@ -9,10 +9,10 @@ The following is currently supported:
 - Export to local WebKnossos instances
 
 ## Requirements
-- Linux distribution with a decent computation power (>128 GB RAM, >40 CPU cores).
-- [render-ws](https://github.com/saalfeldlab/render/blob/b06be441f3c78e1423c54bce20b291752c6d0773/docs/src/site/markdown/render-ws.md) installation
+- Server with Linux distribution (Ubutuntu) and decent computation power (>128 GB RAM, >40 CPU cores).
+- [render-ws](https://github.com/saalfeldlab/render/blob/b06be441f3c78e1423c54bce20b291752c6d0773/docs/src/site/markdown/render-ws.md) installation ([setup instructions](https://github.com/hoogenboom-group/em-infrastructure/blob/master/docs/Render-ws.md))
+- Local WebKnossos instance ([setup instructions](https://github.com/hoogenboom-group/em-infrastructure/blob/master/docs/Webknossos.md)). Since we are using a self-hosted WebKnossos instance, export to the [Remote WebKnossos](https://webknossos.org/) is currently not supported be can be considered on request. 
 - [scripted-render-pipeline](https://github.com/hoogenboom-group/scripted-render-pipeline) installation
-- Local WebKnossos instance. Since we are using a self-hosted WebKnossos instance, export to the [Remote WebKnossos](https://webknossos.org/) is currently not supported be can be considered on request. 
 
 ## Installation
 It is recommended to install `interactive-render-workflow` in a [Python virtual environment](https://docs.python.org/3/library/venv.html) or with help of a Python environment manager such as [Conda](https://docs.conda.io/en/latest/) or [Mamba](https://mamba.readthedocs.io/en/latest/user_guide/mamba.html), to prevent changes to your system Python installation.
