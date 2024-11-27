@@ -32,7 +32,7 @@ pip install git+https://github.com/hoogenboom-group/interactive-render-workflow.
 ```
 Clone `BigFeta` into a suitable directory (required for alignment scripts)
 ```
-git clone git://github.com/AllenInstitute/BigFeta/
+git clone https://github.com/AllenInstitute/BigFeta/
 ```
 
 ## Usage
